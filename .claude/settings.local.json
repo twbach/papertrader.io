@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm install:*)",
+      "Bash(pnpm create:*)",
+      "Bash(pnpm prisma generate:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm dlx shadcn:*)",
+      "WebFetch(domain:http-docs.thetadata.us)",
+      "Bash(curl:*)",
+      "WebFetch(domain:docs.thetadata.us)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

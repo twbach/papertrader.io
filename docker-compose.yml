@@ -1,0 +1,58 @@
+services:
+  # PostgreSQL - Main application database
+  postgres:
+    image: postgres:16-alpine
+    container_name: papertrader-db
+    environment:
+      POSTGRES_DB: papertrader
+      POSTGRES_USER: papertrader
+      POSTGRES_PASSWORD: papertrader_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U papertrader"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis - Caching, leaderboards, pub/sub
+  redis:
+    image: redis:7-alpine
+    container_name: papertrader-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Theta Terminal - Market data provider
+  # Note: ThetaData Terminal is a desktop app running on host machine
+  # Connect from containers via: http://host.docker.internal:25510
+
+  # FastAPI Greeks Service
+  greeks:
+    build:
+      context: ./apps/greeks-service
+      dockerfile: Dockerfile
+    container_name: papertrader-greeks
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./apps/greeks-service:/app
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:

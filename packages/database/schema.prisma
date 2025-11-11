@@ -1,0 +1,216 @@
+// Prisma schema for Options Paper Trading Platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// AUTH & USERS
+// ============================================================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  accounts      Account[]
+  sessions      Session[]
+  portfolios    Portfolio[]
+  orders        Order[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ============================================================================
+// TRADING & PORTFOLIO
+// ============================================================================
+
+model Portfolio {
+  id            String   @id @default(cuid())
+  userId        String
+  name          String   @default("Main Portfolio")
+  cashBalance   Decimal  @default(100000) @db.Decimal(15, 2) // Starting with $100k
+  equity        Decimal  @default(100000) @db.Decimal(15, 2)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  positions     Position[]
+  orders        Order[]
+  equityCurve   EquitySnapshot[]
+
+  @@index([userId])
+  @@map("portfolios")
+}
+
+model Position {
+  id            String   @id @default(cuid())
+  portfolioId   String
+  symbol        String   // Underlying symbol (e.g., "AAPL")
+
+  // Option details
+  optionType    String   // "CALL" or "PUT"
+  strike        Decimal  @db.Decimal(10, 2)
+  expiration    DateTime
+  quantity      Int      // Positive = long, Negative = short
+
+  // Entry details
+  avgEntryPrice Decimal  @db.Decimal(10, 4) // Price per contract
+  entryDate     DateTime @default(now())
+
+  // Current values (cached, updated periodically)
+  currentPrice  Decimal? @db.Decimal(10, 4)
+  unrealizedPnl Decimal? @db.Decimal(15, 2)
+
+  // Greeks (cached)
+  delta         Decimal? @db.Decimal(6, 4)
+  gamma         Decimal? @db.Decimal(6, 4)
+  theta         Decimal? @db.Decimal(6, 4)
+  vega          Decimal? @db.Decimal(6, 4)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  portfolio     Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+
+  @@index([portfolioId])
+  @@index([symbol])
+  @@index([expiration])
+  @@map("positions")
+}
+
+enum OrderStatus {
+  PENDING
+  FILLED
+  PARTIALLY_FILLED
+  CANCELLED
+  REJECTED
+}
+
+enum OrderType {
+  MARKET
+  LIMIT
+}
+
+enum OrderSide {
+  BUY
+  SELL
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  portfolioId   String
+  userId        String
+
+  // Order details
+  symbol        String
+  optionType    String      // "CALL" or "PUT"
+  strike        Decimal     @db.Decimal(10, 2)
+  expiration    DateTime
+
+  side          OrderSide
+  type          OrderType
+  quantity      Int
+  limitPrice    Decimal?    @db.Decimal(10, 4)
+
+  // Execution
+  status        OrderStatus @default(PENDING)
+  filledQty     Int         @default(0)
+  avgFillPrice  Decimal?    @db.Decimal(10, 4)
+
+  // Timestamps
+  placedAt      DateTime    @default(now())
+  filledAt      DateTime?
+
+  // Relations
+  portfolio     Portfolio   @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fills         OrderFill[]
+
+  @@index([portfolioId])
+  @@index([userId])
+  @@index([status])
+  @@index([placedAt])
+  @@map("orders")
+}
+
+model OrderFill {
+  id        String   @id @default(cuid())
+  orderId   String
+  quantity  Int
+  price     Decimal  @db.Decimal(10, 4)
+  filledAt  DateTime @default(now())
+
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("order_fills")
+}
+
+// ============================================================================
+// ANALYTICS & LEADERBOARD
+// ============================================================================
+
+model EquitySnapshot {
+  id          String   @id @default(cuid())
+  portfolioId String
+  equity      Decimal  @db.Decimal(15, 2)
+  timestamp   DateTime @default(now())
+
+  portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+
+  @@index([portfolioId, timestamp])
+  @@map("equity_snapshots")
+}
