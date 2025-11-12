@@ -1,0 +1,27 @@
+# Cursor Rules for Papertrader.io
+
+## Code Validation
+
+- **Always validate TypeScript changes**: After making any code changes, run `pnpm ts:check` in the affected workspace (e.g., `apps/web`) to ensure type safety before completing the task.
+- If `pnpm ts:check` fails, fix all type errors before considering the task complete.
+
+## TypeScript Guidelines
+
+- Use ts-check to validate changes
+- Always declare types for variables and functions, or prefer type inference
+- Avoid using `any` type
+- Create necessary types instead of using generic types
+
+## Package Management
+
+- Always use `pnpm` (not npm or yarn)
+- Use `pnpm install` after adding dependencies
+- Run `pnpm db:generate` after Prisma schema changes
+
+## Project Specific
+
+- Always use `pnpm` for workspace scripts
+- Follow TypeScript general guidelines from user rules
+
+## Screenshots
+Screenshots of the web app for debugging/designing purposes can be found in apps/web/screenshots

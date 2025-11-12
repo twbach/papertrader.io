@@ -4,7 +4,6 @@ import { useMemo } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { ColDef, ColGroupDef, ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
 import { OptionQuote } from '@/lib/theta-client';
-import { Card } from 'pixel-retroui';
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -212,7 +211,7 @@ export function OptionsTable({ calls, puts, underlyingPrice }: OptionsTableProps
   );
 
   return (
-    <Card bg="#3a3a3a" className="p-4 w-full">
+    <div className="w-full p-4">
       <div className="ag-theme-quartz w-full" style={{ height: '600px' }}>
         <AgGridReact<OptionsRow>
           rowData={rowData}
@@ -253,6 +252,6 @@ export function OptionsTable({ calls, puts, underlyingPrice }: OptionsTableProps
           }
         `}</style>
       </div>
-    </Card>
+    </div>
   );
 }

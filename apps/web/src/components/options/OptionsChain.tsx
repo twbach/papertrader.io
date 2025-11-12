@@ -1,9 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { trpc } from '@/lib/trpc/Provider';
-import { ExpirationSelector } from './ExpirationSelector';
-import { OptionsTable } from './OptionsTable';
+import { ExpirationRowTable } from './ExpirationRowTable';
 import { Loader2 } from 'lucide-react';
 import { Card } from 'pixel-retroui';
 
@@ -12,8 +10,6 @@ interface OptionsChainProps {
 }
 
 export function OptionsChain({ symbol }: OptionsChainProps) {
-  const [selectedExpiration, setSelectedExpiration] = useState<string | null>(null);
-
   // Fetch underlying quote
   const { data: underlyingData, isLoading: quoteLoading } =
     trpc.options.getUnderlyingQuote.useQuery({
@@ -26,32 +22,21 @@ export function OptionsChain({ symbol }: OptionsChainProps) {
       symbol,
     });
 
-  // Auto-select first expiration when data loads
-  if (
-    !selectedExpiration &&
-    expirationsData?.expirations &&
-    expirationsData.expirations.length > 0
-  ) {
-    setSelectedExpiration(expirationsData.expirations[0]);
-  }
-
-  // Fetch option chain for selected expiration
-  const { data: chainData, isLoading: chainLoading } =
-    trpc.options.getOptionChain.useQuery(
-      {
-        symbol,
-        expiration: selectedExpiration!,
-      },
-      {
-        enabled: !!selectedExpiration,
-      }
-    );
-
   if (quoteLoading || expirationsLoading) {
     return (
       <div className="flex items-center justify-center h-96">
         <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
       </div>
+    );
+  }
+
+  if (!expirationsData?.expirations || !underlyingData) {
+    return (
+      <Card bg="#2d2d2d" className="p-12">
+        <div className="text-center text-gray-400 py-12 font-minecraft">
+          Unable to load data
+        </div>
+      </Card>
     );
   }
 
@@ -78,38 +63,12 @@ export function OptionsChain({ symbol }: OptionsChainProps) {
         </div>
       </Card>
 
-      {/* Expiration Selector */}
-      {expirationsData && (
-        <Card bg="#2d2d2d" className="p-4">
-          <h2 className="text-lg font-bold text-amber-400 mb-3 font-minecraft">Expiration Dates</h2>
-          <ExpirationSelector
-            expirations={expirationsData.expirations}
-            selectedExpiration={selectedExpiration}
-            onSelectExpiration={setSelectedExpiration}
-          />
-        </Card>
-      )}
-
-      {/* Options Table */}
-      {chainLoading ? (
-        <Card bg="#2d2d2d" className="p-12">
-          <div className="flex items-center justify-center h-96">
-            <Loader2 className="w-16 h-16 animate-spin text-amber-400" />
-          </div>
-        </Card>
-      ) : chainData && underlyingData ? (
-        <OptionsTable
-          calls={chainData.calls}
-          puts={chainData.puts}
-          underlyingPrice={underlyingData.last}
-        />
-      ) : (
-        <Card bg="#2d2d2d" className="p-12">
-          <div className="text-center text-gray-400 py-12 font-minecraft">
-            Select an expiration to view options
-          </div>
-        </Card>
-      )}
+      {/* Expiration Row Table with Accordion */}
+      <ExpirationRowTable
+        symbol={symbol}
+        expirations={expirationsData.expirations}
+        underlyingPrice={underlyingData.last}
+      />
     </div>
   );
 }
