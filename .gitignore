@@ -51,3 +51,5 @@ docker-compose.override.yml
 .theta-terminal
 
 .pnpm-store/
+
+.turbo/
