@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { ColDef, ColGroupDef, ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
 import { OptionQuote } from '@/lib/theta-client';
+import { Card } from 'pixel-retroui';
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -90,21 +91,18 @@ export function OptionsTable({ calls, puts, underlyingPrice }: OptionsTableProps
           {
             field: 'callVolume',
             headerName: 'Vol',
-            width: 80,
             valueFormatter: (params) => formatVolume(params.value),
             cellStyle: { textAlign: 'right' },
           },
           {
             field: 'callOI',
             headerName: 'OI',
-            width: 80,
             valueFormatter: (params) => formatVolume(params.value),
             cellStyle: { textAlign: 'right' },
           },
           {
             field: 'callBid',
             headerName: 'Bid',
-            width: 80,
             valueFormatter: (params) => formatPrice(params.value),
             cellStyle: {
               textAlign: 'right',
@@ -114,7 +112,6 @@ export function OptionsTable({ calls, puts, underlyingPrice }: OptionsTableProps
           {
             field: 'callAsk',
             headerName: 'Ask',
-            width: 80,
             valueFormatter: (params) => formatPrice(params.value),
             cellStyle: {
               textAlign: 'right',
@@ -124,7 +121,6 @@ export function OptionsTable({ calls, puts, underlyingPrice }: OptionsTableProps
           {
             field: 'callLast',
             headerName: 'Last',
-            width: 80,
             valueFormatter: (params) => formatPrice(params.value),
             cellStyle: {
               textAlign: 'right',
@@ -139,7 +135,8 @@ export function OptionsTable({ calls, puts, underlyingPrice }: OptionsTableProps
       {
         field: 'strike',
         headerName: 'STRIKE',
-        width: 100,
+        flex: 1,
+        minWidth: 100,
         cellStyle: (params) => {
           const style: Record<string, string> = {
             textAlign: 'center',
@@ -160,7 +157,6 @@ export function OptionsTable({ calls, puts, underlyingPrice }: OptionsTableProps
           {
             field: 'putLast',
             headerName: 'Last',
-            width: 80,
             valueFormatter: (params) => formatPrice(params.value),
             cellStyle: {
               textAlign: 'right',
@@ -171,7 +167,6 @@ export function OptionsTable({ calls, puts, underlyingPrice }: OptionsTableProps
           {
             field: 'putBid',
             headerName: 'Bid',
-            width: 80,
             valueFormatter: (params) => formatPrice(params.value),
             cellStyle: {
               textAlign: 'right',
@@ -181,7 +176,6 @@ export function OptionsTable({ calls, puts, underlyingPrice }: OptionsTableProps
           {
             field: 'putAsk',
             headerName: 'Ask',
-            width: 80,
             valueFormatter: (params) => formatPrice(params.value),
             cellStyle: {
               textAlign: 'right',
@@ -191,14 +185,12 @@ export function OptionsTable({ calls, puts, underlyingPrice }: OptionsTableProps
           {
             field: 'putOI',
             headerName: 'OI',
-            width: 80,
             valueFormatter: (params) => formatVolume(params.value),
             cellStyle: { textAlign: 'right' },
           },
           {
             field: 'putVolume',
             headerName: 'Vol',
-            width: 80,
             valueFormatter: (params) => formatVolume(params.value),
             cellStyle: { textAlign: 'right' },
           },
@@ -211,28 +203,56 @@ export function OptionsTable({ calls, puts, underlyingPrice }: OptionsTableProps
   const defaultColDef = useMemo<ColDef>(
     () => ({
       sortable: false,
-      resizable: false,
+      resizable: true,
       suppressMovable: true,
+      flex: 1,
+      minWidth: 80,
     }),
     []
   );
 
   return (
-    <div className="ag-theme-quartz" style={{ height: '600px', width: '100%' }}>
-      <AgGridReact<OptionsRow>
-        rowData={rowData}
-        columnDefs={columnDefs}
-        defaultColDef={defaultColDef}
-        headerHeight={32}
-        rowHeight={28}
-        suppressCellFocus={true}
-        getRowClass={(params) => (params.data?.isATM ? 'ag-row-atm' : '')}
-      />
-      <style jsx global>{`
-        .ag-theme-quartz .ag-row-atm {
-          background-color: #fef3c7 !important;
-        }
-      `}</style>
-    </div>
+    <Card bg="#3a3a3a" className="p-4 w-full">
+      <div className="ag-theme-quartz w-full" style={{ height: '600px' }}>
+        <AgGridReact<OptionsRow>
+          rowData={rowData}
+          columnDefs={columnDefs}
+          defaultColDef={defaultColDef}
+          headerHeight={32}
+          rowHeight={28}
+          suppressCellFocus={true}
+          getRowClass={(params) => (params.data?.isATM ? 'ag-row-atm' : '')}
+          domLayout="normal"
+        />
+        <style jsx global>{`
+          .ag-theme-quartz .ag-row-atm {
+            background-color: #fef3c7 !important;
+          }
+          .ag-theme-quartz {
+            background-color: #2d2d2d;
+          }
+          .ag-theme-quartz .ag-header {
+            background-color: #1a1a1a;
+            color: #f0f0f0;
+            font-family: 'Minecraft', Arial, sans-serif;
+          }
+          .ag-theme-quartz .ag-row {
+            background-color: #2d2d2d;
+            color: #f0f0f0;
+            border-color: #4a4a4a;
+          }
+          .ag-theme-quartz .ag-row-odd {
+            background-color: #333333;
+          }
+          .ag-theme-quartz .ag-root-wrapper {
+            border: none;
+          }
+          .ag-theme-quartz .ag-pinned-left-cols-container.ag-hidden,
+          .ag-theme-quartz .ag-pinned-right-cols-container.ag-hidden {
+            display: none !important;
+          }
+        `}</style>
+      </div>
+    </Card>
   );
 }

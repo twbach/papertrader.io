@@ -5,6 +5,7 @@ import { trpc } from '@/lib/trpc/Provider';
 import { ExpirationSelector } from './ExpirationSelector';
 import { OptionsTable } from './OptionsTable';
 import { Loader2 } from 'lucide-react';
+import { Card } from 'pixel-retroui';
 
 interface OptionsChainProps {
   symbol: string;
@@ -55,41 +56,47 @@ export function OptionsChain({ symbol }: OptionsChainProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 w-full">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">{symbol}</h1>
-          {underlyingData && (
-            <div className="flex items-baseline gap-3 mt-1">
-              <span className="text-2xl font-semibold">${underlyingData.last.toFixed(2)}</span>
-              <span
-                className={`text-sm font-medium ${
-                  underlyingData.change >= 0 ? 'text-green-600' : 'text-red-600'
-                }`}
-              >
-                {underlyingData.change >= 0 ? '+' : ''}
-                {underlyingData.change.toFixed(2)} ({underlyingData.changePercent.toFixed(2)}%)
-              </span>
-            </div>
-          )}
+      <Card bg="#1a1a1a" className="p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold font-minecraft text-amber-400">{symbol}</h1>
+            {underlyingData && (
+              <div className="flex items-baseline gap-3 mt-2">
+                <span className="text-3xl font-bold text-white">${underlyingData.last.toFixed(2)}</span>
+                <span
+                  className={`text-lg font-bold ${underlyingData.change >= 0 ? 'text-green-400' : 'text-red-400'
+                    }`}
+                >
+                  {underlyingData.change >= 0 ? '+' : ''}
+                  {underlyingData.change.toFixed(2)} ({underlyingData.changePercent.toFixed(2)}%)
+                </span>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      </Card>
 
       {/* Expiration Selector */}
       {expirationsData && (
-        <ExpirationSelector
-          expirations={expirationsData.expirations}
-          selectedExpiration={selectedExpiration}
-          onSelectExpiration={setSelectedExpiration}
-        />
+        <Card bg="#2d2d2d" className="p-4">
+          <h2 className="text-lg font-bold text-amber-400 mb-3 font-minecraft">Expiration Dates</h2>
+          <ExpirationSelector
+            expirations={expirationsData.expirations}
+            selectedExpiration={selectedExpiration}
+            onSelectExpiration={setSelectedExpiration}
+          />
+        </Card>
       )}
 
       {/* Options Table */}
       {chainLoading ? (
-        <div className="flex items-center justify-center h-96">
-          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-        </div>
+        <Card bg="#2d2d2d" className="p-12">
+          <div className="flex items-center justify-center h-96">
+            <Loader2 className="w-16 h-16 animate-spin text-amber-400" />
+          </div>
+        </Card>
       ) : chainData && underlyingData ? (
         <OptionsTable
           calls={chainData.calls}
@@ -97,9 +104,11 @@ export function OptionsChain({ symbol }: OptionsChainProps) {
           underlyingPrice={underlyingData.last}
         />
       ) : (
-        <div className="text-center text-muted-foreground py-12">
-          Select an expiration to view options
-        </div>
+        <Card bg="#2d2d2d" className="p-12">
+          <div className="text-center text-gray-400 py-12 font-minecraft">
+            Select an expiration to view options
+          </div>
+        </Card>
       )}
     </div>
   );

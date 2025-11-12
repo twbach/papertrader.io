@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@/lib/utils';
+import { Button } from 'pixel-retroui';
 
 interface ExpirationSelectorProps {
   expirations: string[];
@@ -29,25 +29,25 @@ export function ExpirationSelector({
   };
 
   return (
-    <div className="flex gap-2 overflow-x-auto pb-2">
+    <div className="flex gap-3 overflow-x-auto pb-2">
       {expirations.map((expiration) => {
         const { label, days } = formatExpiration(expiration);
         const isSelected = expiration === selectedExpiration;
 
         return (
-          <button
+          <Button
             key={expiration}
             onClick={() => onSelectExpiration(expiration)}
-            className={cn(
-              'flex flex-col items-center px-4 py-2 rounded-lg border transition-colors whitespace-nowrap',
-              isSelected
-                ? 'bg-amber-500 text-white border-amber-600'
-                : 'bg-card border-border hover:bg-accent'
-            )}
+            bg={isSelected ? '#fbbf24' : '#4a5568'}
+            textColor={isSelected ? '#1a1a1a' : '#f0f0f0'}
+            shadow={isSelected ? '#d97706' : '#2d3748'}
+            className="whitespace-nowrap"
           >
-            <span className="font-semibold">{label}</span>
-            <span className="text-xs opacity-80">{days}d</span>
-          </button>
+            <div className="flex flex-col items-center">
+              <span className="font-bold">{label}</span>
+              <span className="text-xs">{days}d</span>
+            </div>
+          </Button>
         );
       })}
     </div>
