@@ -59,7 +59,7 @@ export function AddLegDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="bg-card border-2 border-border">
+            <DialogContent className="border-2">
                 <DialogHeader>
                     <DialogTitle className="text-foreground font-bold">Add Option Leg</DialogTitle>
                     <DialogDescription className="text-muted-foreground">
@@ -143,7 +143,7 @@ export function AddLegDialog({
                     {/* Order Type */}
                     <div className="space-y-2">
                         <Label className="text-foreground">Order Type</Label>
-                        <RadioGroup value={orderType} onValueChange={(value) => setOrderType(value as 'limit' | 'market')}>
+                        <RadioGroup value={orderType} onValueChange={(value: string) => setOrderType(value as 'limit' | 'market')}>
                             <div className="flex items-center space-x-2">
                                 <RadioGroupItem value="limit" id="limit" />
                                 <Label htmlFor="limit" className="cursor-pointer text-foreground">Limit Order</Label>
