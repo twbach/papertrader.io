@@ -1,12 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import { AgGridReact } from 'ag-grid-react';
-import { ColDef, ColGroupDef, ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
+import { Card } from '@/components/retroui/Card';
 import { OptionQuote } from '@/lib/theta-client';
-
-// Register AG Grid modules
-ModuleRegistry.registerModules([AllCommunityModule]);
 
 interface OptionsTableProps {
   calls: OptionQuote[];
@@ -29,26 +25,46 @@ interface OptionsRow {
   isATM: boolean;
 }
 
+type CallColumnKey = 'callVolume' | 'callOI' | 'callBid' | 'callAsk' | 'callLast';
+type PutColumnKey = 'putLast' | 'putBid' | 'putAsk' | 'putOI' | 'putVolume';
+
+interface ColumnConfig<T extends keyof OptionsRow> {
+  key: T;
+  label: string;
+  align: 'left' | 'center' | 'right';
+  formatter: (value: OptionsRow[T]) => string;
+  emphasisClass?: string;
+}
+
+const callColumns: ColumnConfig<CallColumnKey>[] = [
+  { key: 'callVolume', label: 'Vol', align: 'right', formatter: formatVolume },
+  { key: 'callOI', label: 'OI', align: 'right', formatter: formatVolume },
+  { key: 'callBid', label: 'Bid', align: 'right', formatter: formatPrice, emphasisClass: 'text-green-500' },
+  { key: 'callAsk', label: 'Ask', align: 'right', formatter: formatPrice, emphasisClass: 'text-green-500' },
+  { key: 'callLast', label: 'Last', align: 'right', formatter: formatPrice, emphasisClass: 'text-green-500 font-semibold' },
+];
+
+const putColumns: ColumnConfig<PutColumnKey>[] = [
+  { key: 'putLast', label: 'Last', align: 'left', formatter: formatPrice, emphasisClass: 'text-destructive font-semibold' },
+  { key: 'putBid', label: 'Bid', align: 'left', formatter: formatPrice, emphasisClass: 'text-destructive' },
+  { key: 'putAsk', label: 'Ask', align: 'left', formatter: formatPrice, emphasisClass: 'text-destructive' },
+  { key: 'putOI', label: 'OI', align: 'left', formatter: formatVolume },
+  { key: 'putVolume', label: 'Vol', align: 'left', formatter: formatVolume },
+];
+
 export function OptionsTable({ calls, puts, underlyingPrice }: OptionsTableProps) {
-  // Find ATM strike
   const atmStrike = useMemo(() => {
-    return calls.reduce((prev, curr) =>
-      Math.abs(curr.strike - underlyingPrice) < Math.abs(prev.strike - underlyingPrice)
-        ? curr
-        : prev
-    )?.strike || underlyingPrice;
+    const closest = calls.reduce((prev, curr) =>
+      Math.abs(curr.strike - underlyingPrice) < Math.abs(prev.strike - underlyingPrice) ? curr : prev
+    );
+    return closest?.strike || underlyingPrice;
   }, [calls, underlyingPrice]);
 
-  // Transform data into row format
   const rowData = useMemo<OptionsRow[]>(() => {
-    const strikes = [...new Set([...calls.map((c) => c.strike), ...puts.map((p) => p.strike)])].sort(
-      (a, b) => a - b
-    );
-
+    const strikes = [...new Set([...calls.map((c) => c.strike), ...puts.map((p) => p.strike)])].sort((a, b) => a - b);
     return strikes.map((strike) => {
       const call = calls.find((c) => c.strike === strike);
       const put = puts.find((p) => p.strike === strike);
-
       return {
         strike,
         callVolume: call?.volume || 0,
@@ -66,200 +82,68 @@ export function OptionsTable({ calls, puts, underlyingPrice }: OptionsTableProps
     });
   }, [calls, puts, atmStrike]);
 
-  // Format helpers
-  const formatPrice = (value: number) => {
-    if (value === 0) return '-';
-    return value.toFixed(2);
-  };
-
-  const formatVolume = (value: number) => {
-    if (value === 0) return '-';
-    if (value >= 1000) {
-      return `${(value / 1000).toFixed(1)}K`;
-    }
-    return value.toString();
-  };
-
-  // Column definitions
-  const columnDefs = useMemo<(ColDef<OptionsRow> | ColGroupDef<OptionsRow>)[]>(
-    () => [
-      // CALLS GROUP
-      {
-        headerName: 'CALLS',
-        children: [
-          {
-            field: 'callVolume',
-            headerName: 'Vol',
-            valueFormatter: (params) => formatVolume(params.value),
-            cellStyle: { textAlign: 'right' },
-          },
-          {
-            field: 'callOI',
-            headerName: 'OI',
-            valueFormatter: (params) => formatVolume(params.value),
-            cellStyle: { textAlign: 'right' },
-          },
-          {
-            field: 'callBid',
-            headerName: 'Bid',
-            valueFormatter: (params) => formatPrice(params.value),
-            cellStyle: {
-              textAlign: 'right',
-              color: 'rgb(34, 197, 94)',
-            },
-          },
-          {
-            field: 'callAsk',
-            headerName: 'Ask',
-            valueFormatter: (params) => formatPrice(params.value),
-            cellStyle: {
-              textAlign: 'right',
-              color: 'rgb(34, 197, 94)',
-            },
-          },
-          {
-            field: 'callLast',
-            headerName: 'Last',
-            valueFormatter: (params) => formatPrice(params.value),
-            cellStyle: {
-              textAlign: 'right',
-              color: 'rgb(34, 197, 94)',
-              fontWeight: 'bold',
-            },
-          },
-        ],
-      },
-
-      // STRIKE
-      {
-        field: 'strike',
-        headerName: 'STRIKE',
-        flex: 1,
-        minWidth: 100,
-        cellStyle: (params) => {
-          const style: Record<string, string> = {
-            textAlign: 'center',
-            fontWeight: 'bold',
-          };
-          if (params.data?.isATM) {
-            style.backgroundColor = 'var(--accent)';
-          }
-          return style;
-        },
-        valueFormatter: (params) => params.value.toFixed(0),
-      },
-
-      // PUTS GROUP
-      {
-        headerName: 'PUTS',
-        children: [
-          {
-            field: 'putLast',
-            headerName: 'Last',
-            valueFormatter: (params) => formatPrice(params.value),
-            cellStyle: {
-              textAlign: 'right',
-              color: 'var(--destructive)',
-              fontWeight: 'bold',
-            },
-          },
-          {
-            field: 'putBid',
-            headerName: 'Bid',
-            valueFormatter: (params) => formatPrice(params.value),
-            cellStyle: {
-              textAlign: 'right',
-              color: 'var(--destructive)',
-            },
-          },
-          {
-            field: 'putAsk',
-            headerName: 'Ask',
-            valueFormatter: (params) => formatPrice(params.value),
-            cellStyle: {
-              textAlign: 'right',
-              color: 'var(--destructive)',
-            },
-          },
-          {
-            field: 'putOI',
-            headerName: 'OI',
-            valueFormatter: (params) => formatVolume(params.value),
-            cellStyle: { textAlign: 'right' },
-          },
-          {
-            field: 'putVolume',
-            headerName: 'Vol',
-            valueFormatter: (params) => formatVolume(params.value),
-            cellStyle: { textAlign: 'right' },
-          },
-        ],
-      },
-    ],
-    []
-  );
-
-  const defaultColDef = useMemo<ColDef>(
-    () => ({
-      sortable: false,
-      resizable: true,
-      suppressMovable: true,
-      flex: 1,
-      minWidth: 80,
-    }),
-    []
-  );
-
   return (
-    <div className="w-full p-4">
-      <div className="ag-theme-retro w-full" style={{ height: '600px' }}>
-        <AgGridReact<OptionsRow>
-          rowData={rowData}
-          columnDefs={columnDefs}
-          defaultColDef={defaultColDef}
-          headerHeight={32}
-          rowHeight={28}
-          suppressCellFocus={true}
-          getRowClass={(params) => (params.data?.isATM ? 'ag-row-atm' : '')}
-          domLayout="normal"
-        />
-        <style jsx global>{`
-          .ag-theme-retro .ag-row-atm {
-            background-color: var(--accent) !important;
-          }
-          .ag-theme-retro {
-            background-color: var(--card);
-            font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
-          }
-          .ag-theme-retro .ag-header {
-            background-color: var(--background);
-            color: var(--foreground);
-            font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
-            border-bottom: 2px solid var(--border);
-          }
-          .ag-theme-retro .ag-header-cell {
-            border-right: 2px solid var(--border);
-          }
-          .ag-theme-retro .ag-row {
-            background-color: var(--card);
-            color: var(--card-foreground);
-            border-color: var(--border);
-          }
-          .ag-theme-retro .ag-row-odd {
-            background-color: var(--background);
-          }
-          .ag-theme-retro .ag-root-wrapper {
-            border: 2px solid var(--border);
-          }
-          .ag-theme-retro .ag-cell {
-            border-right: 1px solid var(--border);
-          }
-          .ag-theme-retro .ag-pinned-left-cols-container.ag-hidden,
-          .ag-theme-retro .ag-pinned-right-cols-container.ag-hidden {
-            display: none !important;
-          }
-        `}</style>
+    <Card className="w-full overflow-x-auto border-2 border-border bg-card">
+      <div className="min-w-[1100px]">
+        <div className="border-b-2 border-border bg-background px-4 py-3">
+          <div className="grid grid-cols-[repeat(11,minmax(80px,1fr))] text-xs font-bold uppercase text-muted-foreground">
+            <div className="col-span-5 text-right pr-3">Calls</div>
+            <div className="col-span-1 text-center">Strike</div>
+            <div className="col-span-5 text-left pl-3">Puts</div>
+          </div>
+          <div className="mt-2 grid grid-cols-[repeat(11,minmax(80px,1fr))] text-[11px] font-bold uppercase text-muted-foreground">
+            {callColumns.map((column) => (
+              <div key={`call-header-${column.key}`} className="text-right px-3">{column.label}</div>
+            ))}
+            <div className="text-center px-3">Strike</div>
+            {putColumns.map((column) => (
+              <div key={`put-header-${column.key}`} className="text-left px-3">{column.label}</div>
+            ))}
+          </div>
+        </div>
+        <div>
+          {rowData.map((row, index) => {
+            const rowBg = row.isATM ? 'bg-accent' : index % 2 === 0 ? 'bg-card' : 'bg-background';
+            return (
+              <div
+                key={row.strike}
+                className={`grid grid-cols-[repeat(11,minmax(80px,1fr))] border-b border-border text-sm text-card-foreground transition-colors hover:bg-muted ${rowBg}`}
+              >
+                {callColumns.map((column) => (
+                  <div
+                    key={`call-${column.key}-${row.strike}`}
+                    className={`px-3 py-2 text-right font-mono ${column.emphasisClass || ''}`}
+                  >
+                    {column.formatter(row[column.key])}
+                  </div>
+                ))}
+                <div className={`px-3 py-2 text-center font-bold ${row.isATM ? 'bg-accent font-black text-foreground' : ''}`}>
+                  {row.strike.toFixed(0)}
+                </div>
+                {putColumns.map((column) => (
+                  <div
+                    key={`put-${column.key}-${row.strike}`}
+                    className={`px-3 py-2 text-left font-mono ${column.emphasisClass || ''}`}
+                  >
+                    {column.formatter(row[column.key])}
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+        </div>
       </div>
-    </div>
+    </Card>
   );
+}
+
+function formatPrice(value: number): string {
+  if (value === 0) return '-';
+  return value.toFixed(2);
+}
+
+function formatVolume(value: number): string {
+  if (value === 0) return '-';
+  if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
+  return value.toString();
 }
