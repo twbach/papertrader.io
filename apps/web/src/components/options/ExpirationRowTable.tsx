@@ -1,9 +1,10 @@
+// To rollback to RetroUI: Change imports from '@/components/ui/*' to '@/components/retroui/*'
 'use client';
 
 import { useMemo, useState, useCallback } from 'react';
 import { trpc } from '@/lib/trpc/Provider';
 import { OptionsTable } from './OptionsTable';
-import { Card } from '@/components/retroui/Card';
+import { Card } from '@/components/ui/card';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 
 interface ExpirationRowTableProps {

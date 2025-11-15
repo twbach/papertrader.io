@@ -1,7 +1,8 @@
+// To rollback to RetroUI: Change imports from '@/components/ui/*' to '@/components/retroui/*'
 'use client';
 
 import { useMemo, useCallback } from 'react';
-import { Card } from '@/components/retroui/Card';
+import { Card } from '@/components/ui/card';
 
 interface ExpirationSelectorProps {
     expirations: string[];
@@ -77,8 +78,8 @@ export function ExpirationSelector({
                                                 key={exp.date}
                                                 onClick={() => onExpirationChange(exp.date)}
                                                 className={`px-3 py-2 text-sm rounded transition-all font-bold ${isSelected
-                                                        ? 'bg-primary text-primary-foreground'
-                                                        : 'bg-card text-card-foreground hover:bg-muted border border-border'
+                                                    ? 'bg-primary text-primary-foreground'
+                                                    : 'bg-card text-card-foreground hover:bg-muted border border-border'
                                                     }`}
                                             >
                                                 {day}

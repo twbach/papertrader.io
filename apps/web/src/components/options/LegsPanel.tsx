@@ -1,9 +1,10 @@
+// To rollback to RetroUI: Change imports from '@/components/ui/*' to '@/components/retroui/*'
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card } from '@/components/retroui/Card';
-import { Button } from '@/components/retroui/Button';
-import { Badge } from '@/components/retroui/Badge';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { X, ChevronUp, ChevronDown } from 'lucide-react';
 import { OptionLeg } from '@/types/option-leg';
 
@@ -108,10 +109,10 @@ export function LegsPanel({ legs, onRemoveLeg }: LegsPanelProps) {
                                 className="flex items-center justify-between p-4 bg-muted rounded border-2 border-border hover:bg-muted/70 transition-colors"
                             >
                                 <div className="flex items-center gap-4 flex-1 flex-wrap">
-                                    <Badge variant={leg.action === 'buy' ? 'default' : 'solid'} className="uppercase min-w-[60px] justify-center">
+                                    <Badge variant={leg.action === 'buy' ? 'default' : 'destructive'} className="uppercase min-w-[60px] justify-center">
                                         {leg.action}
                                     </Badge>
-                                    <Badge variant={leg.type === 'call' ? 'outline' : 'solid'} className="uppercase min-w-[50px] justify-center">
+                                    <Badge variant={leg.type === 'call' ? 'outline' : 'secondary'} className="uppercase min-w-[50px] justify-center">
                                         {leg.type}
                                     </Badge>
                                     <div className="flex items-center gap-2">

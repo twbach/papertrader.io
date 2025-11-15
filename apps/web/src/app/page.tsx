@@ -1,6 +1,7 @@
+// To rollback to RetroUI: Change imports from '@/components/ui/*' to '@/components/retroui/*'
 import Link from "next/link";
-import { Card } from "@/components/retroui/Card";
-import { Button } from "@/components/retroui/Button";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (

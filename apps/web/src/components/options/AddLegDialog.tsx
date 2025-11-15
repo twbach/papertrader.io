@@ -1,11 +1,12 @@
+// To rollback to RetroUI: Change imports from '@/components/ui/*' to '@/components/retroui/*' and adjust Dialog usage
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Dialog } from '@/components/retroui/Dialog';
-import { Button } from '@/components/retroui/Button';
-import { Label } from '@/components/retroui/Label';
-import { Input } from '@/components/retroui/Input';
-import { RadioGroup, RadioGroupItem } from '@/components/retroui/RadioGroup';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { OptionLeg } from '@/types/option-leg';
 
 interface AddLegDialogProps {
@@ -58,13 +59,13 @@ export function AddLegDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <Dialog.Content size="md" className="bg-card border-2 border-border">
-                <Dialog.Header>
-                    <h2 className="text-foreground font-bold">Add Option Leg</h2>
-                    <Dialog.Description className="text-muted-foreground">
+            <DialogContent className="bg-card border-2 border-border">
+                <DialogHeader>
+                    <DialogTitle className="text-foreground font-bold">Add Option Leg</DialogTitle>
+                    <DialogDescription className="text-muted-foreground">
                         Add a new leg to your option strategy.
-                    </Dialog.Description>
-                </Dialog.Header>
+                    </DialogDescription>
+                </DialogHeader>
 
                 <div className="space-y-6 py-4 px-4">
                     {/* Option Details */}
@@ -101,8 +102,8 @@ export function AddLegDialog({
                                 type="button"
                                 onClick={() => setAction('buy')}
                                 className={`p-4 rounded border-2 transition-all ${action === 'buy'
-                                        ? 'border-green-500 bg-green-500/20 text-green-400'
-                                        : 'border-border bg-card text-muted-foreground hover:bg-muted'
+                                    ? 'border-green-500 bg-green-500/20 text-green-400'
+                                    : 'border-border bg-card text-muted-foreground hover:bg-muted'
                                     }`}
                             >
                                 <div className="text-center">
@@ -114,8 +115,8 @@ export function AddLegDialog({
                                 type="button"
                                 onClick={() => setAction('sell')}
                                 className={`p-4 rounded border-2 transition-all ${action === 'sell'
-                                        ? 'border-red-500 bg-red-500/20 text-red-400'
-                                        : 'border-border bg-card text-muted-foreground hover:bg-muted'
+                                    ? 'border-red-500 bg-red-500/20 text-red-400'
+                                    : 'border-border bg-card text-muted-foreground hover:bg-muted'
                                     }`}
                             >
                                 <div className="text-center">
@@ -183,15 +184,15 @@ export function AddLegDialog({
                     </div>
                 </div>
 
-                <Dialog.Footer>
+                <DialogFooter>
                     <Button variant="outline" onClick={() => onOpenChange(false)} className="bg-card border-border">
                         Cancel
                     </Button>
-                    <Button onClick={handleSubmit} className="bg-primary hover:bg-primary-hover">
+                    <Button onClick={handleSubmit} className="bg-primary">
                         Add Leg
                     </Button>
-                </Dialog.Footer>
-            </Dialog.Content>
+                </DialogFooter>
+            </DialogContent>
         </Dialog>
     );
 }
