@@ -3,7 +3,7 @@
 import { useMemo, useState, useCallback } from 'react';
 import { trpc } from '@/lib/trpc/Provider';
 import { OptionsTable } from './OptionsTable';
-import { Card } from 'pixel-retroui';
+import { Card } from '@/components/retroui/Card';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 
 interface ExpirationRowTableProps {
@@ -54,11 +54,11 @@ export function ExpirationRowTable({ symbol, expirations, underlyingPrice }: Exp
     }, []);
 
     return (
-        <Card bg="#3a3a3a" className="p-0 w-full overflow-hidden">
+        <Card className="p-0 w-full overflow-hidden bg-card">
             <div className="w-full">
                 {/* Header */}
-                <div className="bg-[#1a1a1a] px-4 py-2 border-b border-gray-600">
-                    <div className="text-lg font-bold text-amber-400 font-minecraft">Expiration</div>
+                <div className="bg-background px-4 py-2 border-b border-border">
+                    <div className="text-lg font-bold text-primary">Expiration</div>
                 </div>
                 {/* Rows */}
                 <div className="max-h-[600px] overflow-y-auto">
@@ -69,19 +69,19 @@ export function ExpirationRowTable({ symbol, expirations, underlyingPrice }: Exp
                             <div key={row.expiration}>
                                 <div
                                     onClick={() => toggleExpiration(row.expiration)}
-                                    className={`flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-[#3a3a3a] transition-colors ${isOdd ? 'bg-[#333333]' : 'bg-[#2d2d2d]'
+                                    className={`flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted transition-colors ${isOdd ? 'bg-card' : 'bg-background'
                                         }`}
                                 >
                                     {isExpanded ? (
-                                        <ChevronDown className="w-4 h-4 text-amber-400 shrink-0" />
+                                        <ChevronDown className="w-4 h-4 text-primary shrink-0" />
                                     ) : (
-                                        <ChevronRight className="w-4 h-4 text-amber-400 shrink-0" />
+                                        <ChevronRight className="w-4 h-4 text-primary shrink-0" />
                                     )}
-                                    <span className="font-bold text-amber-400 font-minecraft">{row.label}</span>
-                                    <span className="text-xs text-gray-400">{row.days}d</span>
+                                    <span className="font-bold text-primary">{row.label}</span>
+                                    <span className="text-xs text-muted-foreground">{row.days}d</span>
                                 </div>
                                 {isExpanded && (
-                                    <div className="border-t border-gray-600 bg-[#1a1a1a]">
+                                    <div className="border-t border-border bg-background">
                                         <ExpirationDetailCell
                                             expiration={row.expiration}
                                             symbol={symbol}
@@ -118,14 +118,14 @@ function ExpirationDetailCell({ expiration, symbol, underlyingPrice }: Expiratio
     if (isLoading) {
         return (
             <div className="flex items-center justify-center p-8">
-                <div className="w-8 h-8 border-4 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
             </div>
         );
     }
 
     if (!chainData) {
         return (
-            <div className="text-center text-gray-400 py-8 font-minecraft">
+            <div className="text-center text-muted-foreground py-8">
                 No data available
             </div>
         );

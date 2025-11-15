@@ -1,9 +1,11 @@
 'use client';
 
+import { useState, useMemo, useEffect } from 'react';
 import { trpc } from '@/lib/trpc/Provider';
-import { ExpirationRowTable } from './ExpirationRowTable';
+import { ExpirationSelector } from './ExpirationSelector';
+import { OptionsTable } from './OptionsTable';
 import { Loader2 } from 'lucide-react';
-import { Card } from 'pixel-retroui';
+import { Card } from '@/components/retroui/Card';
 
 interface OptionsChainProps {
   symbol: string;
@@ -22,6 +24,31 @@ export function OptionsChain({ symbol }: OptionsChainProps) {
       symbol,
     });
 
+  // Get first expiration as default
+  const defaultExpiration = useMemo(() => {
+    return expirationsData?.expirations?.[0] || '';
+  }, [expirationsData?.expirations]);
+
+  const [selectedExpiration, setSelectedExpiration] = useState<string>(defaultExpiration);
+
+  // Update selected expiration when default changes
+  useEffect(() => {
+    if (defaultExpiration && !selectedExpiration) {
+      setSelectedExpiration(defaultExpiration);
+    }
+  }, [defaultExpiration, selectedExpiration]);
+
+  // Fetch option chain for selected expiration
+  const { data: chainData, isLoading: chainLoading } = trpc.options.getOptionChain.useQuery(
+    {
+      symbol,
+      expiration: selectedExpiration,
+    },
+    {
+      enabled: !!selectedExpiration,
+    }
+  );
+
   if (quoteLoading || expirationsLoading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -32,8 +59,8 @@ export function OptionsChain({ symbol }: OptionsChainProps) {
 
   if (!expirationsData?.expirations || !underlyingData) {
     return (
-      <Card bg="#2d2d2d" className="p-12">
-        <div className="text-center text-gray-400 py-12 font-minecraft">
+      <Card className="p-12 bg-card">
+        <div className="text-center text-muted-foreground py-12">
           Unable to load data
         </div>
       </Card>
@@ -43,15 +70,15 @@ export function OptionsChain({ symbol }: OptionsChainProps) {
   return (
     <div className="space-y-6 w-full">
       {/* Header */}
-      <Card bg="#1a1a1a" className="p-6">
+      <Card className="p-6 bg-card">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold font-minecraft text-amber-400">{symbol}</h1>
+            <h1 className="text-4xl font-bold text-primary">{symbol}</h1>
             {underlyingData && (
               <div className="flex items-baseline gap-3 mt-2">
-                <span className="text-3xl font-bold text-white">${underlyingData.last.toFixed(2)}</span>
+                <span className="text-3xl font-bold text-card-foreground">${underlyingData.last.toFixed(2)}</span>
                 <span
-                  className={`text-lg font-bold ${underlyingData.change >= 0 ? 'text-green-400' : 'text-red-400'
+                  className={`text-lg font-bold ${underlyingData.change >= 0 ? 'text-green-400' : 'text-destructive'
                     }`}
                 >
                   {underlyingData.change >= 0 ? '+' : ''}
@@ -63,12 +90,33 @@ export function OptionsChain({ symbol }: OptionsChainProps) {
         </div>
       </Card>
 
-      {/* Expiration Row Table with Accordion */}
-      <ExpirationRowTable
-        symbol={symbol}
+      {/* Expiration Selector */}
+      <ExpirationSelector
         expirations={expirationsData.expirations}
-        underlyingPrice={underlyingData.last}
+        selectedExpiration={selectedExpiration}
+        onExpirationChange={setSelectedExpiration}
       />
+
+      {/* Options Table */}
+      {chainLoading ? (
+        <Card className="p-12 bg-card">
+          <div className="flex items-center justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          </div>
+        </Card>
+      ) : chainData ? (
+        <OptionsTable
+          calls={chainData.calls}
+          puts={chainData.puts}
+          underlyingPrice={underlyingData.last}
+        />
+      ) : (
+        <Card className="p-12 bg-card">
+          <div className="text-center text-muted-foreground py-12">
+            No option chain data available
+          </div>
+        </Card>
+      )}
     </div>
   );
 }

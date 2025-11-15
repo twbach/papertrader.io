@@ -105,7 +105,7 @@ export function OptionsTable({ calls, puts, underlyingPrice }: OptionsTableProps
             valueFormatter: (params) => formatPrice(params.value),
             cellStyle: {
               textAlign: 'right',
-              color: '#15803d',
+              color: 'rgb(34, 197, 94)',
             },
           },
           {
@@ -114,7 +114,7 @@ export function OptionsTable({ calls, puts, underlyingPrice }: OptionsTableProps
             valueFormatter: (params) => formatPrice(params.value),
             cellStyle: {
               textAlign: 'right',
-              color: '#15803d',
+              color: 'rgb(34, 197, 94)',
             },
           },
           {
@@ -123,7 +123,7 @@ export function OptionsTable({ calls, puts, underlyingPrice }: OptionsTableProps
             valueFormatter: (params) => formatPrice(params.value),
             cellStyle: {
               textAlign: 'right',
-              color: '#15803d',
+              color: 'rgb(34, 197, 94)',
               fontWeight: 'bold',
             },
           },
@@ -142,7 +142,7 @@ export function OptionsTable({ calls, puts, underlyingPrice }: OptionsTableProps
             fontWeight: 'bold',
           };
           if (params.data?.isATM) {
-            style.backgroundColor = '#fcd34d';
+            style.backgroundColor = 'var(--accent)';
           }
           return style;
         },
@@ -159,7 +159,7 @@ export function OptionsTable({ calls, puts, underlyingPrice }: OptionsTableProps
             valueFormatter: (params) => formatPrice(params.value),
             cellStyle: {
               textAlign: 'right',
-              color: '#b91c1c',
+              color: 'var(--destructive)',
               fontWeight: 'bold',
             },
           },
@@ -169,7 +169,7 @@ export function OptionsTable({ calls, puts, underlyingPrice }: OptionsTableProps
             valueFormatter: (params) => formatPrice(params.value),
             cellStyle: {
               textAlign: 'right',
-              color: '#b91c1c',
+              color: 'var(--destructive)',
             },
           },
           {
@@ -178,7 +178,7 @@ export function OptionsTable({ calls, puts, underlyingPrice }: OptionsTableProps
             valueFormatter: (params) => formatPrice(params.value),
             cellStyle: {
               textAlign: 'right',
-              color: '#b91c1c',
+              color: 'var(--destructive)',
             },
           },
           {
@@ -212,7 +212,7 @@ export function OptionsTable({ calls, puts, underlyingPrice }: OptionsTableProps
 
   return (
     <div className="w-full p-4">
-      <div className="ag-theme-quartz w-full" style={{ height: '600px' }}>
+      <div className="ag-theme-retro w-full" style={{ height: '600px' }}>
         <AgGridReact<OptionsRow>
           rowData={rowData}
           columnDefs={columnDefs}
@@ -224,30 +224,38 @@ export function OptionsTable({ calls, puts, underlyingPrice }: OptionsTableProps
           domLayout="normal"
         />
         <style jsx global>{`
-          .ag-theme-quartz .ag-row-atm {
-            background-color: #fef3c7 !important;
+          .ag-theme-retro .ag-row-atm {
+            background-color: var(--accent) !important;
           }
-          .ag-theme-quartz {
-            background-color: #2d2d2d;
+          .ag-theme-retro {
+            background-color: var(--card);
+            font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
           }
-          .ag-theme-quartz .ag-header {
-            background-color: #1a1a1a;
-            color: #f0f0f0;
-            font-family: 'Minecraft', Arial, sans-serif;
+          .ag-theme-retro .ag-header {
+            background-color: var(--background);
+            color: var(--foreground);
+            font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+            border-bottom: 2px solid var(--border);
           }
-          .ag-theme-quartz .ag-row {
-            background-color: #2d2d2d;
-            color: #f0f0f0;
-            border-color: #4a4a4a;
+          .ag-theme-retro .ag-header-cell {
+            border-right: 2px solid var(--border);
           }
-          .ag-theme-quartz .ag-row-odd {
-            background-color: #333333;
+          .ag-theme-retro .ag-row {
+            background-color: var(--card);
+            color: var(--card-foreground);
+            border-color: var(--border);
           }
-          .ag-theme-quartz .ag-root-wrapper {
-            border: none;
+          .ag-theme-retro .ag-row-odd {
+            background-color: var(--background);
           }
-          .ag-theme-quartz .ag-pinned-left-cols-container.ag-hidden,
-          .ag-theme-quartz .ag-pinned-right-cols-container.ag-hidden {
+          .ag-theme-retro .ag-root-wrapper {
+            border: 2px solid var(--border);
+          }
+          .ag-theme-retro .ag-cell {
+            border-right: 1px solid var(--border);
+          }
+          .ag-theme-retro .ag-pinned-left-cols-container.ag-hidden,
+          .ag-theme-retro .ag-pinned-right-cols-container.ag-hidden {
             display: none !important;
           }
         `}</style>
