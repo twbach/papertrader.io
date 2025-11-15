@@ -1,13 +1,18 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Card } from '@/components/retroui/Card';
 import { OptionQuote } from '@/lib/theta-client';
+import { OptionLeg } from '@/types/option-leg';
+import { AddLegDialog } from './AddLegDialog';
 
 interface OptionsTableProps {
   calls: OptionQuote[];
   puts: OptionQuote[];
   underlyingPrice: number;
+  expiration: string;
+  legs?: OptionLeg[];
+  onAddLeg?: (leg: OptionLeg) => void;
 }
 
 interface OptionsRow {
@@ -52,13 +57,34 @@ const putColumns: ColumnConfig<PutColumnKey>[] = [
   { key: 'putVolume', label: 'Vol', align: 'left', formatter: formatVolume },
 ];
 
-export function OptionsTable({ calls, puts, underlyingPrice }: OptionsTableProps) {
+export function OptionsTable({ calls, puts, underlyingPrice, expiration, legs = [], onAddLeg }: OptionsTableProps) {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedOption, setSelectedOption] = useState<{
+    type: 'call' | 'put';
+    priceType: 'bid' | 'ask' | 'last';
+    price: number;
+    strike: number;
+  } | null>(null);
+
   const atmStrike = useMemo(() => {
     const closest = calls.reduce((prev, curr) =>
       Math.abs(curr.strike - underlyingPrice) < Math.abs(prev.strike - underlyingPrice) ? curr : prev
     );
     return closest?.strike || underlyingPrice;
   }, [calls, underlyingPrice]);
+
+  const handlePriceClick = (type: 'call' | 'put', priceType: 'bid' | 'ask' | 'last', price: number, strike: number) => {
+    if (!onAddLeg) return;
+    setSelectedOption({ type, priceType, price, strike });
+    setDialogOpen(true);
+  };
+
+  const handleAddLeg = (leg: OptionLeg) => {
+    if (onAddLeg) {
+      onAddLeg(leg);
+    }
+    setDialogOpen(false);
+  };
 
   const rowData = useMemo<OptionsRow[]>(() => {
     const strikes = [...new Set([...calls.map((c) => c.strike), ...puts.map((p) => p.strike)])].sort((a, b) => a - b);
@@ -103,35 +129,95 @@ export function OptionsTable({ calls, puts, underlyingPrice }: OptionsTableProps
         </div>
         <div>
           {rowData.map((row, index) => {
+            // Check if this strike has any legs in the strategy
+            const callLeg = legs.find(leg => leg.strike === row.strike && leg.type === 'call' && leg.expiration === expiration);
+            const putLeg = legs.find(leg => leg.strike === row.strike && leg.type === 'put' && leg.expiration === expiration);
+            const hasCallLeg = !!callLeg;
+            const hasPutLeg = !!putLeg;
+
             const rowBg = row.isATM ? 'bg-accent' : index % 2 === 0 ? 'bg-card' : 'bg-background';
             return (
               <div
                 key={row.strike}
                 className={`grid grid-cols-[repeat(11,minmax(80px,1fr))] border-b border-border text-sm text-card-foreground transition-colors hover:bg-muted ${rowBg}`}
               >
-                {callColumns.map((column) => (
-                  <div
-                    key={`call-${column.key}-${row.strike}`}
-                    className={`px-3 py-2 text-right font-mono ${column.emphasisClass || ''}`}
-                  >
-                    {column.formatter(row[column.key])}
-                  </div>
-                ))}
+                {/* Call columns */}
+                <div className={`col-span-5 grid grid-cols-5 gap-0 ${hasCallLeg
+                  ? callLeg.action === 'buy'
+                    ? 'border-l-4 border-l-green-500 bg-green-500/10'
+                    : 'border-l-4 border-l-red-500 bg-red-500/10'
+                  : ''
+                  }`}>
+                  {callColumns.map((column) => {
+                    const isPriceColumn = column.key === 'callBid' || column.key === 'callAsk' || column.key === 'callLast';
+                    const price = column.key === 'callBid' ? row.callBid : column.key === 'callAsk' ? row.callAsk : row.callLast;
+                    const priceType = column.key === 'callBid' ? 'bid' : column.key === 'callAsk' ? 'ask' : 'last';
+                    return (
+                      <div
+                        key={`call-${column.key}-${row.strike}`}
+                        className={`px-3 py-2 text-right font-mono ${column.emphasisClass || ''} ${isPriceColumn && onAddLeg && price > 0
+                          ? 'cursor-pointer hover:underline'
+                          : ''
+                          } ${hasCallLeg ? 'font-semibold' : ''}`}
+                        onClick={() => {
+                          if (isPriceColumn && onAddLeg && price > 0) {
+                            handlePriceClick('call', priceType, price, row.strike);
+                          }
+                        }}
+                      >
+                        {column.formatter(row[column.key])}
+                      </div>
+                    );
+                  })}
+                </div>
                 <div className={`px-3 py-2 text-center font-bold ${row.isATM ? 'bg-accent font-black text-foreground' : ''}`}>
                   {row.strike.toFixed(0)}
                 </div>
-                {putColumns.map((column) => (
-                  <div
-                    key={`put-${column.key}-${row.strike}`}
-                    className={`px-3 py-2 text-left font-mono ${column.emphasisClass || ''}`}
-                  >
-                    {column.formatter(row[column.key])}
-                  </div>
-                ))}
+                {/* Put columns */}
+                <div className={`col-span-5 grid grid-cols-5 gap-0 ${hasPutLeg
+                  ? putLeg.action === 'buy'
+                    ? 'border-l-4 border-l-green-500 bg-green-500/10'
+                    : 'border-l-4 border-l-red-500 bg-red-500/10'
+                  : ''
+                  }`}>
+                  {putColumns.map((column) => {
+                    const isPriceColumn = column.key === 'putLast' || column.key === 'putBid' || column.key === 'putAsk';
+                    const price = column.key === 'putLast' ? row.putLast : column.key === 'putBid' ? row.putBid : row.putAsk;
+                    const priceType = column.key === 'putLast' ? 'last' : column.key === 'putBid' ? 'bid' : 'ask';
+                    return (
+                      <div
+                        key={`put-${column.key}-${row.strike}`}
+                        className={`px-3 py-2 text-left font-mono ${column.emphasisClass || ''} ${isPriceColumn && onAddLeg && price > 0
+                          ? 'cursor-pointer hover:underline'
+                          : ''
+                          } ${hasPutLeg ? 'font-semibold' : ''}`}
+                        onClick={() => {
+                          if (isPriceColumn && onAddLeg && price > 0) {
+                            handlePriceClick('put', priceType, price, row.strike);
+                          }
+                        }}
+                      >
+                        {column.formatter(row[column.key])}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             );
           })}
         </div>
+        {selectedOption && (
+          <AddLegDialog
+            open={dialogOpen}
+            onOpenChange={setDialogOpen}
+            optionType={selectedOption.type}
+            strike={selectedOption.strike}
+            expiration={expiration}
+            priceType={selectedOption.priceType}
+            price={selectedOption.price}
+            onAddLeg={handleAddLeg}
+          />
+        )}
       </div>
     </Card>
   );

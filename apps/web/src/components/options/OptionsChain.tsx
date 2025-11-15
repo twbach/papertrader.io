@@ -4,14 +4,18 @@ import { useState, useMemo, useEffect } from 'react';
 import { trpc } from '@/lib/trpc/Provider';
 import { ExpirationSelector } from './ExpirationSelector';
 import { OptionsTable } from './OptionsTable';
+import { LegsPanel } from './LegsPanel';
 import { Loader2 } from 'lucide-react';
 import { Card } from '@/components/retroui/Card';
+import { OptionLeg } from '@/types/option-leg';
 
 interface OptionsChainProps {
   symbol: string;
 }
 
 export function OptionsChain({ symbol }: OptionsChainProps) {
+  const [legs, setLegs] = useState<OptionLeg[]>([]);
+
   // Fetch underlying quote
   const { data: underlyingData, isLoading: quoteLoading } =
     trpc.options.getUnderlyingQuote.useQuery({
@@ -37,6 +41,14 @@ export function OptionsChain({ symbol }: OptionsChainProps) {
       setSelectedExpiration(defaultExpiration);
     }
   }, [defaultExpiration, selectedExpiration]);
+
+  const handleAddLeg = (leg: OptionLeg) => {
+    setLegs([...legs, leg]);
+  };
+
+  const handleRemoveLeg = (id: string) => {
+    setLegs(legs.filter(leg => leg.id !== id));
+  };
 
   // Fetch option chain for selected expiration
   const { data: chainData, isLoading: chainLoading } = trpc.options.getOptionChain.useQuery(
@@ -109,6 +121,9 @@ export function OptionsChain({ symbol }: OptionsChainProps) {
           calls={chainData.calls}
           puts={chainData.puts}
           underlyingPrice={underlyingData.last}
+          expiration={selectedExpiration}
+          legs={legs}
+          onAddLeg={handleAddLeg}
         />
       ) : (
         <Card className="p-12 bg-card">
@@ -116,6 +131,11 @@ export function OptionsChain({ symbol }: OptionsChainProps) {
             No option chain data available
           </div>
         </Card>
+      )}
+
+      {/* Legs Panel - Fixed at bottom */}
+      {legs.length > 0 && (
+        <LegsPanel legs={legs} onRemoveLeg={handleRemoveLeg} />
       )}
     </div>
   );

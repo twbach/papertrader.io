@@ -137,6 +137,7 @@ function ExpirationDetailCell({ expiration, symbol, underlyingPrice }: Expiratio
                 calls={chainData.calls}
                 puts={chainData.puts}
                 underlyingPrice={underlyingPrice}
+                expiration={expiration}
             />
         </div>
     );
