@@ -38,3 +38,4 @@ This document outlines the responsive design strategy for the paper trading inte
 - Explore stacked card layout for very narrow screens (<360px) where even 5 columns are cramped.
 - Provide a toggle to switch between “Compact” (bid/ask only) and “Detailed” (all metrics) views.
 - When Greeks data becomes available, show them only inside expandable sections to keep the primary grid lightweight.
+
