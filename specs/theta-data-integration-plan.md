@@ -11,10 +11,11 @@
 
 ## 3. Requirements & Constraints
 1. **Environment flag**  
-   - Introduce a value such as `THETA_DATA_MODE=mock|live|auto`.  
+   - Introduce `THETA_DATA_MODE=mock|live|auto`.  
    - `mock`: always return synthetic data without touching Theta endpoints.  
    - `live`: always attempt Theta first; surface errors instead of silently falling back, so failures are visible.  
-   - `auto` (default): best-effort live call with fallback to mock when the terminal is unavailable (mirrors today’s behavior).
+   - `auto` (default): best-effort live call with fallback to mock when the terminal is unavailable (mirrors today’s behavior).  
+   - If `THETA_DATA_MODE` is omitted, default to `auto`. If it is set to any other value (e.g., `automatic`), the server should throw at startup with a descriptive error listing the valid options.
 2. **Non-breaking API**  
    - Keep the tRPC procedure signatures unchanged so the React components stay untouched.
 3. **Observability**  
@@ -63,6 +64,23 @@
    - Add unit tests for `theta-client` helpers to ensure each mode behaves as expected (mock, live happy path, live failure).
    - Add an integration test (or Playwright mock) that sets `THETA_DATA_MODE=mock` and validates deterministic UI output without network calls.
    - Update CI scripts to run with `THETA_DATA_MODE=mock` so tests do not need Theta Terminal access.
+
+### Test Setup
+- **Env var ordering**: tests must set `process.env.THETA_DATA_MODE` *before* importing `theta-client` because `getThetaDataMode()` reads the value at module initialization. Example (Jest):
+  ```ts
+  process.env.THETA_DATA_MODE = 'mock';
+  const { getOptionChain } = require('@/lib/theta-client');
+  ```
+  In ESM/Vitest, set the env in a setup file (`vitest.setup.ts`) that runs prior to test imports.
+- **Fetch stubbing**: when `THETA_DATA_MODE=mock`, no network stubs are required because the module bypasses fetch entirely. If you need to test live-mode behavior, set `THETA_DATA_MODE=live` and stub `global.fetch` (e.g., using `msw` or `jest-fetch-mock`) so tests remain hermetic.
+- **Monorepo propagation**: ensure workspace scripts export the env var (e.g., `THETA_DATA_MODE=mock pnpm test --filter apps/web`). CI workflows should set it at the job level so all packages inherit:
+  ```yaml
+  env:
+    THETA_DATA_MODE: mock
+  steps:
+    - run: pnpm install
+    - run: pnpm test --filter apps/web
+  ```
 6. **Documentation & Developer Experience**
    - Update `AGENTS.md` or project `README.md` with instructions on running the app in each mode, mentioning the dependency on Theta Terminal for `live`.
    - Call out that production deployments should set `THETA_DATA_MODE=live` and configure alerting for failed fetches (since there is no fallback).
