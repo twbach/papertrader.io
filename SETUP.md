@@ -24,6 +24,15 @@ cp .env.example apps/web/.env.local
 ```
 
 Edit `.env` and add your ThetaData credentials if needed.
+Set `THETA_DATA_MODE` to control data sourcing:
+
+- `auto` _(default)_ – best-effort live call with fallback to mocks.
+- `live` – live calls only, errors bubble to the UI.
+- `mock` – always serve mock data (great for offline dev + CI).
+
+Optional: set `THETA_DATA_VERBOSE_LOGS=true` to emit debug logs for successful Theta calls.
+
+Invalid values make the server crash on startup so you notice misconfigurations immediately.
 
 ### 3. Start Infrastructure (PostgreSQL + Redis + Greeks Service)
 
@@ -32,6 +41,7 @@ docker-compose up -d
 ```
 
 Verify services are running:
+
 ```bash
 docker-compose ps
 ```
@@ -39,12 +49,14 @@ docker-compose ps
 ### 4. Set Up Database
 
 Push Prisma schema to PostgreSQL:
+
 ```bash
 cd packages/database
 pnpm db:push
 ```
 
 Or run migrations:
+
 ```bash
 pnpm db:migrate
 ```
@@ -62,14 +74,14 @@ App will be available at: http://localhost:3000
 
 ## Service URLs
 
-| Service | URL | Description |
-|---------|-----|-------------|
-| **Next.js App** | http://localhost:3000 | Main web application |
-| **tRPC API** | http://localhost:3000/api/trpc | API endpoint |
-| **Greeks Service** | http://localhost:8000 | FastAPI Greeks calculator |
-| **Postgres** | localhost:5432 | Database |
-| **Redis** | localhost:6379 | Cache/Leaderboards |
-| **Theta Terminal** | http://localhost:25510 | Market data (run on host) |
+| Service            | URL                            | Description               |
+| ------------------ | ------------------------------ | ------------------------- |
+| **Next.js App**    | http://localhost:3000          | Main web application      |
+| **tRPC API**       | http://localhost:3000/api/trpc | API endpoint              |
+| **Greeks Service** | http://localhost:8000          | FastAPI Greeks calculator |
+| **Postgres**       | localhost:5432                 | Database                  |
+| **Redis**          | localhost:6379                 | Cache/Leaderboards        |
+| **Theta Terminal** | http://localhost:25510         | Market data (run on host) |
 
 ---
 
@@ -167,6 +179,7 @@ papertrader.io/
 ### Port Already in Use
 
 If ports are occupied:
+
 ```bash
 # Check what's using ports
 lsof -i :3000
@@ -181,6 +194,7 @@ kill -9 <PID>
 ### Prisma Client Out of Sync
 
 If you see "Prisma Client is out of sync" errors:
+
 ```bash
 cd packages/database
 pnpm db:generate
@@ -201,6 +215,7 @@ docker-compose up --build -d
 Make sure Theta Terminal is running on your host machine and accessible at `http://localhost:25510`.
 
 Test connection:
+
 ```bash
 curl http://localhost:25510/v2/system/status
 ```

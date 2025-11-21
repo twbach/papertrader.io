@@ -1,9 +1,11 @@
 # Order Placement Feature Requirements
 
 ## Overview
+
 Implement a professional order placement system for the paper trading platform that allows users to review, confirm, and place multi-leg options orders.
 
 ## Current State
+
 - **Option Chain View**: Displays calls/puts with ability to select options
 - **Legs Management**: Users can add/remove legs to build multi-leg strategies
 - **LegsPanel Component**: Shows legs with basic info and total net debit/credit
@@ -15,14 +17,17 @@ Implement a professional order placement system for the paper trading platform t
 ### 1. Enhanced Order Review Panel
 
 #### 1.1 Order Summary Display
+
 Transform the current LegsPanel into a comprehensive order review interface that displays:
 
 **Individual Legs**
+
 - Current display (maintain): Action (BUY/SELL), Type (CALL/PUT), Quantity, Strike, Price, Expiration
 - Add: Individual Greeks per leg (delta, theta)
 - Visual hierarchy to distinguish between buy/sell legs
 
 **Aggregated Metrics (Critical Values)**
+
 - **Portfolio Greeks**
   - Overall Delta: Sum of (leg.delta × leg.quantity × ±1 for buy/sell × 100)
   - Overall Theta: Sum of (leg.theta × leg.quantity × ±1 for buy/sell × 100)
@@ -49,6 +54,7 @@ Transform the current LegsPanel into a comprehensive order review interface that
   - Display format: Large, prominent number with clear labeling
 
 #### 1.2 Order Action Button
+
 - Replace collapse/expand controls with prominent "Place Order" or "Send" button
 - Button should be:
   - Large and visually distinct
@@ -59,13 +65,16 @@ Transform the current LegsPanel into a comprehensive order review interface that
 ### 2. Order Placement Flow
 
 #### 2.1 Pre-submission Validation
+
 Before allowing order submission, validate:
+
 - At least one leg exists
 - All legs have valid prices (> 0)
 - User has sufficient buying power (check portfolio.cashBalance)
 - Options are not expired
 
 #### 2.2 Order Submission Process
+
 1. User clicks "Send" button
 2. Show loading state on button
 3. Create order(s) in database:
@@ -94,7 +103,9 @@ Before allowing order submission, validate:
 7. On error: Show error toast/message, keep user on page
 
 #### 2.3 Order Types
+
 For v1 (simplified paper trading):
+
 - **Market Orders Only**: Orders fill immediately at current price
 - No limit orders, stop orders, or advanced order types needed
 - No partial fills (always fill completely)
@@ -102,12 +113,14 @@ For v1 (simplified paper trading):
 ### 3. UI/UX Requirements
 
 #### 3.1 Layout
+
 - **Fixed bottom panel** (current behavior - keep it)
 - **Collapsible header** for leg details when scrolling (current behavior - keep it)
 - **New section**: Order summary with metrics above the legs list
 - **Prominent action button**: "Send Order" or "Place Trade" button
 
 #### 3.2 Visual Design
+
 - Professional appearance with clear hierarchy
 - Use existing shadcn/ui components for consistency
 - Color coding:
@@ -118,21 +131,26 @@ For v1 (simplified paper trading):
 - Spacing: Adequate whitespace for readability
 
 #### 3.3 Responsive Design
+
 - Must work on desktop (primary focus)
 - Mobile considerations (reference mobile-design.md if needed)
 
 ### 4. Data Requirements
 
 #### 4.1 Greeks Calculation
+
 - Source: OptionQuote interface already includes delta, gamma, theta, vega
 - Aggregation logic:
+
   ```typescript
   // Per 1 contract = 100 shares
   const contractMultiplier = 100;
 
   // For each leg
-  const legDelta = option.delta * leg.quantity * contractMultiplier * (leg.action === 'buy' ? 1 : -1);
-  const legTheta = option.theta * leg.quantity * contractMultiplier * (leg.action === 'buy' ? 1 : -1);
+  const legDelta =
+    option.delta * leg.quantity * contractMultiplier * (leg.action === 'buy' ? 1 : -1);
+  const legTheta =
+    option.theta * leg.quantity * contractMultiplier * (leg.action === 'buy' ? 1 : -1);
 
   // Portfolio totals
   const totalDelta = legs.reduce((sum, leg) => sum + legDelta, 0);
@@ -140,18 +158,23 @@ For v1 (simplified paper trading):
   ```
 
 #### 4.2 Max Profit/Loss Calculation
+
 Create utility functions for common strategies:
+
 - Single options (long/short call/put)
 - Vertical spreads (call/put spreads)
 - Iron condors / butterflies
 - Straddles / strangles
 
 For complex or custom strategies:
+
 - Use profit/loss simulation at key price points
 - Or display "Custom Strategy" with calculated values at specific prices
 
 #### 4.3 Buying Power Calculation
+
 Simplified model for paper trading:
+
 - **Debit strategies**: Net debit amount
 - **Credit strategies with defined risk**: Max loss amount (spread width - credit)
 - **Naked short options**: Conservative estimate (e.g., 20% of underlying × quantity × 100)
@@ -159,7 +182,9 @@ Simplified model for paper trading:
 ### 5. Backend Requirements
 
 #### 5.1 New tRPC Procedures
+
 Create `ordersRouter` with:
+
 - `placeOrder`: Mutation to create and fill order(s)
   - Input: Array of OptionLeg objects, portfolioId
   - Validation: Check buying power, valid prices
@@ -171,7 +196,9 @@ Create `ordersRouter` with:
   - Return: Portfolio with positions, current P&L, Greeks
 
 #### 5.2 Database Transactions
+
 Use Prisma transactions to ensure atomicity:
+
 ```typescript
 await prisma.$transaction(async (tx) => {
   // 1. Create order records
@@ -181,6 +208,7 @@ await prisma.$transaction(async (tx) => {
 ```
 
 #### 5.3 Portfolio Management
+
 - Each user gets default portfolio with $100,000 starting balance (already in schema)
 - For MVP: Use user's first/only portfolio
 - Future: Support multiple portfolios
@@ -188,7 +216,9 @@ await prisma.$transaction(async (tx) => {
 ### 6. Portfolio Page Requirements
 
 #### 6.1 Basic Portfolio View
+
 After order placement, user is redirected to `/portfolio` showing:
+
 - Account balance
 - Total equity (cash + position values)
 - List of open positions with:
@@ -199,6 +229,7 @@ After order placement, user is redirected to `/portfolio` showing:
 - Basic position management (view details, close position)
 
 #### 6.2 Future Enhancements (Out of Scope for v1)
+
 - Position P&L charts
 - Greeks over time
 - Trade history
@@ -207,6 +238,7 @@ After order placement, user is redirected to `/portfolio` showing:
 ### 7. Technical Implementation Steps
 
 #### 7.1 Frontend Components
+
 1. **Refactor LegsPanel** (`LegsPanel.tsx`)
    - Add OrderSummary section with metrics
    - Add Greeks calculation and display
@@ -233,6 +265,7 @@ After order placement, user is redirected to `/portfolio` showing:
    - Basic position cards/table
 
 #### 7.2 Backend Implementation
+
 1. **Create orders router** (`server/routers/orders.ts`)
    - `placeOrder` mutation
    - Input validation with Zod
@@ -249,6 +282,7 @@ After order placement, user is redirected to `/portfolio` showing:
    - Export portfolioRouter
 
 #### 7.3 Type Definitions
+
 1. **Extend OptionLeg type** if needed for Greeks
    - Add Greeks fields if not already present
    - Ensure consistency with OptionQuote interface
@@ -261,6 +295,7 @@ After order placement, user is redirected to `/portfolio` showing:
 ### 8. Testing Considerations
 
 #### 8.1 Order Placement Testing
+
 - Test with single leg orders
 - Test with multi-leg spreads
 - Test buying power validation
@@ -269,6 +304,7 @@ After order placement, user is redirected to `/portfolio` showing:
 - Verify database transactions are atomic
 
 #### 8.2 UI Testing
+
 - Verify all metrics display correctly
 - Test responsive layout
 - Test button states (enabled/disabled/loading)
@@ -277,6 +313,7 @@ After order placement, user is redirected to `/portfolio` showing:
 ### 9. Success Criteria
 
 The feature is complete when:
+
 1. ✅ User can review order with all critical metrics (Delta, Theta, Max Loss, Max Profit, Buying Power)
 2. ✅ UI is professional and clear
 3. ✅ User can click "Send" to place order

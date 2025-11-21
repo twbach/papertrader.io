@@ -5,6 +5,7 @@
 This project uses standard shadcn/ui components with a custom theme. Previously used RetroUI components are preserved in the codebase for easy rollback if needed.
 
 **Current Setup:**
+
 - **shadcn/ui**: Standard component library with custom theme (ACTIVE)
 - **RetroUI**: Retro-styled components (PRESERVED for rollback, not currently used)
 
@@ -40,6 +41,7 @@ apps/web/src/
 The project uses the Geist Sans font (loaded via Next.js font optimization) with system font fallbacks.
 
 Font utility classes are defined in `globals.css`:
+
 - `.font-head` - Headings (Geist Sans)
 - `.font-body` - Body text (Geist Sans)
 
@@ -48,6 +50,7 @@ Font utility classes are defined in `globals.css`:
 The theme is defined in `apps/web/src/styles/retro-ui-theme.css` using HSL-based CSS variables:
 
 **Core tokens:**
+
 - `--background`, `--foreground` - Base colors
 - `--card`, `--card-foreground` - Card backgrounds and text
 - `--popover`, `--popover-foreground` - Popover/dropdown colors
@@ -73,6 +76,7 @@ npx shadcn@latest add [component-name] --yes
 ```
 
 Example:
+
 ```bash
 npx shadcn@latest add dropdown-menu --yes
 ```
@@ -131,7 +135,14 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 ### Dialog
 
 ```tsx
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 
 <Dialog open={open} onOpenChange={setOpen}>
   <DialogContent>
@@ -144,7 +155,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
       <Button>Action</Button>
     </DialogFooter>
   </DialogContent>
-</Dialog>
+</Dialog>;
 ```
 
 ### Other Components
@@ -184,22 +195,22 @@ The theme uses HSL color values for better color manipulation. Edit `apps/web/sr
 ```css
 @layer base {
   :root {
-    --background: 338.2 0% 100%;           /* White background */
-    --foreground: 233.3 27.3% 12.9%;       /* Dark blue-gray text */
-    --primary: 229.3 109.3% 66.6%;         /* Bright blue */
+    --background: 338.2 0% 100%; /* White background */
+    --foreground: 233.3 27.3% 12.9%; /* Dark blue-gray text */
+    --primary: 229.3 109.3% 66.6%; /* Bright blue */
     --primary-foreground: 233.9 84.3% 4.9%; /* Very dark blue */
-    --secondary: 334.3 0% 90.9%;           /* Light gray */
-    --destructive: 357.2 125.9% 71%;       /* Red/pink */
-    --border: 233.3 27.3% 42.9%;           /* Medium blue-gray */
-    --input: 233.3 27.3% 42.9%;            /* Same as border */
-    --ring: 229.3 109.3% 66.6%;            /* Same as primary */
+    --secondary: 334.3 0% 90.9%; /* Light gray */
+    --destructive: 357.2 125.9% 71%; /* Red/pink */
+    --border: 233.3 27.3% 42.9%; /* Medium blue-gray */
+    --input: 233.3 27.3% 42.9%; /* Same as border */
+    --ring: 229.3 109.3% 66.6%; /* Same as primary */
     /* ... more tokens */
   }
 
   .dark {
-    --background: 338.2 10% 10%;           /* Dark background */
-    --foreground: 233.3 37.3% 87.1%;       /* Light text */
-    --primary: 229.3 100% 33.4%;           /* Darker blue */
+    --background: 338.2 10% 10%; /* Dark background */
+    --foreground: 233.3 37.3% 87.1%; /* Light text */
+    --primary: 229.3 100% 33.4%; /* Darker blue */
     /* ... more tokens */
   }
 }
@@ -208,6 +219,7 @@ The theme uses HSL color values for better color manipulation. Edit `apps/web/sr
 ### HSL Format and Tailwind v4 Integration
 
 Colors are defined in HSL format without the `hsl()` wrapper:
+
 - Format: `HUE SATURATION% LIGHTNESS%`
 - Example: `229.3 109.3% 66.6%` = `hsl(229.3, 109.3%, 66.6%)`
 
@@ -270,11 +282,13 @@ Edit the `<style jsx global>` block in `OptionsTable.tsx`:
 ### 1. Always Use Theme Variables
 
 ❌ **Don't** use hardcoded colors:
+
 ```tsx
 <div className="bg-[#2d2d2d] text-[#f0f0f0]">
 ```
 
 ✅ **Do** use theme variables:
+
 ```tsx
 <div className="bg-card text-card-foreground">
 ```
@@ -282,6 +296,7 @@ Edit the `<style jsx global>` block in `OptionsTable.tsx`:
 ### 2. Component Imports
 
 Always import from the `ui` directory:
+
 ```tsx
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -290,6 +305,7 @@ import { Card } from '@/components/ui/card';
 ### 3. Typography
 
 The project uses Geist Sans font (via Next.js font optimization):
+
 ```tsx
 <h1 className="text-primary font-bold">Title</h1>
 <p className="text-foreground">Body text</p>
@@ -298,10 +314,9 @@ The project uses Geist Sans font (via Next.js font optimization):
 ### 4. Spacing and Layout
 
 Use Tailwind utilities with theme-aware colors:
+
 ```tsx
-<Card className="p-6 bg-card border-2 border-border">
-  Content
-</Card>
+<Card className="p-6 bg-card border-2 border-border">Content</Card>
 ```
 
 ## Dependencies
@@ -331,12 +346,14 @@ pnpm install  # Install dependencies after adding new components
 The project migrated from RetroUI to standard shadcn/ui components:
 
 **Changes:**
+
 - Installed standard shadcn/ui components to `apps/web/src/components/ui/`
 - Updated all imports from `@/components/retroui/*` to `@/components/ui/*`
 - Updated theme to use HSL-based color values
 - Preserved RetroUI components for easy rollback
 
 **Import changes:**
+
 ```tsx
 // Old (RetroUI)
 import { Card } from '@/components/retroui/Card';
@@ -348,6 +365,7 @@ import { Button } from '@/components/ui/button';
 ```
 
 **Component structure changes:**
+
 ```tsx
 // Old (RetroUI Card)
 <Card>
@@ -366,6 +384,7 @@ import { Button } from '@/components/ui/button';
 
 **Rollback Instructions:**
 If you need to revert to RetroUI components:
+
 1. Change imports from `@/components/ui/*` back to `@/components/retroui/*`
 2. Update Card usage from `CardHeader` to `Card.Header` pattern
 3. Update Dialog usage from separate exports to `Dialog.Content` pattern
@@ -408,6 +427,7 @@ Without this conversion, Tailwind v4 cannot resolve utilities like `bg-card`, `t
 ### TypeScript Errors
 
 Run type checking:
+
 ```bash
 cd apps/web
 pnpm ts:check
@@ -437,4 +457,3 @@ Note: The `AddLegDialog` component uses a custom portal-based dialog implementat
 - **Active Components**: `apps/web/src/components/ui/`
 - **Preserved Components**: `apps/web/src/components/retroui/` (for rollback)
 - **shadcn Config**: `apps/web/components.json`
-

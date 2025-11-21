@@ -20,32 +20,57 @@ This project aims to be the **first open, broker-agnostic options simulator** co
 
 ## 🧩 Core Features (MVP)
 
-| Category | Description |
-|-----------|--------------|
-| **Trading Engine** | Multi-leg orders (limit & market) |
-| **Portfolio** | Positions, Greeks, real-time P/L, and historical equity curve |
-| **Market Data** | 15-min delayed quotes and Greeks (via vendor API, e.g., Databento/Polygon) |
-| **Compliance** | Educational use only, delayed-data banners, non-pro attestation |
+| Category           | Description                                                                |
+| ------------------ | -------------------------------------------------------------------------- |
+| **Trading Engine** | Multi-leg orders (limit & market)                                          |
+| **Portfolio**      | Positions, Greeks, real-time P/L, and historical equity curve              |
+| **Market Data**    | 15-min delayed quotes and Greeks (via vendor API, e.g., Databento/Polygon) |
+| **Compliance**     | Educational use only, delayed-data banners, non-pro attestation            |
 
 ---
 
 ## 🏗️ Tech Stack
 
-| Layer | Technology | Purpose |
-|-------|------------|---------|
-| **Frontend** | [Next.js 14](https://nextjs.org/) (App Router) | React framework with SSR, routing, API routes |
-| **API Layer** | [tRPC](https://trpc.io/) | End-to-end typesafe API (no code generation) |
-| **UI Components** | [shadcn/ui](https://ui.shadcn.com/) + Tailwind CSS | Beautiful, accessible component library |
-| **Database** | PostgreSQL 16 | Primary data store (users, positions, orders, equity curves) |
-| **ORM** | [Prisma](https://www.prisma.io/) | Type-safe database client with migrations |
-| **Cache / Leaderboards** | Redis 7 | Sorted sets for leaderboards, session cache, pub/sub |
-| **Greeks Service** | [FastAPI](https://fastapi.tiangolo.com/) (Python) | Options math microservice (IV, Greeks calculations) |
-| **Market Data** | [ThetaData](https://www.thetadata.net/) Terminal | NBBO quotes, Greeks, historical options data |
-| **Background Jobs** | [BullMQ](https://docs.bullmq.io/) | Task queue for portfolio recalculations, EOD processing |
-| **Validation** | [Zod](https://zod.dev/) | Runtime type validation (shared with tRPC) |
-| **Auth** | [NextAuth.js](https://next-auth.js.org/) | Authentication (email, OAuth) |
-| **Deployment** | Docker Compose | Local dev + production containerization |
-| **Monorepo** | pnpm workspaces + Turbo | Fast builds, shared packages |
+| Layer                    | Technology                                         | Purpose                                                      |
+| ------------------------ | -------------------------------------------------- | ------------------------------------------------------------ |
+| **Frontend**             | [Next.js 14](https://nextjs.org/) (App Router)     | React framework with SSR, routing, API routes                |
+| **API Layer**            | [tRPC](https://trpc.io/)                           | End-to-end typesafe API (no code generation)                 |
+| **UI Components**        | [shadcn/ui](https://ui.shadcn.com/) + Tailwind CSS | Beautiful, accessible component library                      |
+| **Database**             | PostgreSQL 16                                      | Primary data store (users, positions, orders, equity curves) |
+| **ORM**                  | [Prisma](https://www.prisma.io/)                   | Type-safe database client with migrations                    |
+| **Cache / Leaderboards** | Redis 7                                            | Sorted sets for leaderboards, session cache, pub/sub         |
+| **Greeks Service**       | [FastAPI](https://fastapi.tiangolo.com/) (Python)  | Options math microservice (IV, Greeks calculations)          |
+| **Market Data**          | [ThetaData](https://www.thetadata.net/) Terminal   | NBBO quotes, Greeks, historical options data                 |
+| **Background Jobs**      | [BullMQ](https://docs.bullmq.io/)                  | Task queue for portfolio recalculations, EOD processing      |
+| **Validation**           | [Zod](https://zod.dev/)                            | Runtime type validation (shared with tRPC)                   |
+| **Auth**                 | [NextAuth.js](https://next-auth.js.org/)           | Authentication (email, OAuth)                                |
+| **Deployment**           | Docker Compose                                     | Local dev + production containerization                      |
+| **Monorepo**             | pnpm workspaces + Turbo                            | Fast builds, shared packages                                 |
+
+---
+
+## 🛰️ Theta Data Modes
+
+Use the `THETA_DATA_MODE` env var to select how option data is sourced:
+
+- `auto` _(default)_ – try Theta Terminal first, log any handled failure at `warn`, and fall back to mock data.
+- `live` – always hit Theta Terminal and bubble `ThetaDataError` responses to the UI (no fallback).
+- `mock` – bypass Theta Terminal entirely for deterministic offline work and CI.
+
+Set `THETA_DATA_VERBOSE_LOGS=true` to emit debug-level success logs when you need extra telemetry.
+
+Invalid values cause the server to throw on startup with the list of valid options so misconfigurations are caught early.
+
+---
+
+## 🧪 Testing
+
+```bash
+cd apps/web
+THETA_DATA_MODE=mock pnpm test
+```
+
+Vitest runs entirely against mocks by default (no Theta Terminal required). CI jobs should export `THETA_DATA_MODE=mock` before invoking `pnpm test` or `pnpm ts:check` to keep suites deterministic.
 
 ---
 
