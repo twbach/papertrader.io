@@ -51,7 +51,7 @@ This project aims to be the **first open, broker-agnostic options simulator** co
 
 ## 🛰️ Market Data Modes
 
-Use the `THETA_DATA_MODE` env var to control how failures are handled regardless of the provider:
+Use the `DATA_MODE` env var to control how failures are handled regardless of the provider:
 
 - `auto` _(default)_ – try the selected provider first, log handled failures at `warn`, and fall back to mock data.
 - `live` – always hit the selected provider and bubble `MarketDataError` responses to the UI (no fallback).
@@ -59,15 +59,29 @@ Use the `THETA_DATA_MODE` env var to control how failures are handled regardless
 
 ### Provider Selection
 
-Set `MARKET_DATA_PROVIDER` to pick the live data source:
+Set `MARKET_DATA_PROVIDER` to pick the live data source for **option chains**:
 
 - `massive` _(default)_ – Massive REST API (`MASSIVE_API_URL`, `MASSIVE_API_KEY` required)
 - `theta` – legacy ThetaData CSV endpoints (`THETA_API_URL`, Theta Terminal)
 
+**Stock quotes** are fetched from EODHD (`EODHD_API_KEY` required) regardless of the selected provider. EODHD provides 15-minute delayed quotes for US stocks.
+
 You can switch providers at runtime by changing the env var and restarting the server.
+
+### Verifying Massive Connectivity
+
+Before relying on live data, you can run a quick end-to-end check:
+
+```bash
+cd apps/web
+MASSIVE_API_KEY=sk_your_key pnpm verify:massive SPY
+```
+
+The script hits the Massive REST API (expirations → option chain) and EODHD (underlying snapshot) and prints actionable errors if any step fails.
 
 Set `THETA_DATA_VERBOSE_LOGS=true` to emit debug-level success logs when you need extra telemetry.
 For Massive, supply `MASSIVE_API_KEY` and optionally override `MASSIVE_API_URL` (defaults to `https://api.massive.com/v1`).
+For EODHD, supply `EODHD_API_KEY` (get yours at https://eodhd.com/register).
 
 Invalid values cause the server to throw on startup with the list of valid options so misconfigurations are caught early.
 
@@ -77,10 +91,10 @@ Invalid values cause the server to throw on startup with the list of valid optio
 
 ```bash
 cd apps/web
-THETA_DATA_MODE=mock pnpm test
+DATA_MODE=mock pnpm test
 ```
 
-Vitest runs entirely against mocks by default (no Theta Terminal required). CI jobs should export `THETA_DATA_MODE=mock` before invoking `pnpm test` or `pnpm ts:check` to keep suites deterministic.
+Vitest runs entirely against mocks by default (no Theta Terminal required). CI jobs should export `DATA_MODE=mock` before invoking `pnpm test` or `pnpm ts:check` to keep suites deterministic.
 
 ---
 

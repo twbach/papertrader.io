@@ -35,7 +35,7 @@ UnderlyingQuote {
 }
 ```
 
-### Mode Handling (`THETA_DATA_MODE`)
+### Mode Handling (`DATA_MODE`)
 
 - `mock`: skip external HTTP calls and return deterministic mock helpers
 - `auto`: try live data, fallback to mocks on `network|http|parse|auth|rate-limit` errors
@@ -45,6 +45,14 @@ UnderlyingQuote {
 
 - Live fetches emit JSON logs `{ source: 'market-data', provider, endpoint, symbol, expiration?, mode, requestId, durationMs, fallback, errorType?, message? }`
 - Failures throw `MarketDataError` (wrapper around `MarketDataProviderError`) with endpoint, symbol, expiration, provider, mode, timestamp, errorType
+
+### Massive Implementation Notes
+
+- Massive REST calls run through the official `@massive.com/client-js` SDK (`restClient`) with pagination enabled so we do not manually assemble `next_url` pages.
+- `listOptionsContracts` supplies `expired=false`, sorts by `expiration_date`, and caps to 20 upcoming expirations.
+- `getOptionsChain` pulls a single expiration per request and maps SDK Greeks/quotes into the shared `OptionQuote`.
+- `getStocksSnapshotTicker` powers the underlying snapshot so we can display last/bid/ask/daily change without another custom fetch.
+- Run `pnpm verify:massive [SYMBOL] [EXPIRATION?]` inside `apps/web` to smoke test the SDK-backed provider using the same code paths as production.
 
 ### Consumers
 

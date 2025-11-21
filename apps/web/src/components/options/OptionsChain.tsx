@@ -9,12 +9,22 @@ import { LegsPanel } from './LegsPanel';
 import { Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { OptionLeg } from '@/types/option-leg';
+import type { MarketDataMode } from '@/lib/market-data-config';
+import type { MarketDataProviderId } from '@/lib/market-data/provider';
 
 interface OptionsChainProps {
   symbol: string;
+  marketDataMode?: MarketDataMode;
+  marketDataProvider?: MarketDataProviderId;
+  showMarketDataMeta?: boolean;
 }
 
-export function OptionsChain({ symbol }: OptionsChainProps) {
+export function OptionsChain({
+  symbol,
+  marketDataMode,
+  marketDataProvider,
+  showMarketDataMeta = false,
+}: OptionsChainProps) {
   const [legs, setLegs] = useState<OptionLeg[]>([]);
 
   // Fetch underlying quote
@@ -97,6 +107,16 @@ export function OptionsChain({ symbol }: OptionsChainProps) {
                 >
                   {underlyingData.change >= 0 ? '+' : ''}
                   {underlyingData.change.toFixed(2)} ({underlyingData.changePercent.toFixed(2)}%)
+                </span>
+              </div>
+            )}
+            {showMarketDataMeta && (
+              <div className="mt-4 flex flex-wrap gap-2 text-xs uppercase tracking-wide text-muted-foreground">
+                <span className="rounded-full border border-border px-3 py-1">
+                  Provider:&nbsp;{(marketDataProvider ?? 'unknown').toUpperCase()}
+                </span>
+                <span className="rounded-full border border-border px-3 py-1">
+                  Mode:&nbsp;{(marketDataMode ?? 'auto').toUpperCase()}
                 </span>
               </div>
             )}

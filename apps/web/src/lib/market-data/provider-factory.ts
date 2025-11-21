@@ -21,6 +21,10 @@ export function setMarketDataProvider(provider: MarketDataProvider | null): void
   cachedProviderId = provider?.id ?? null;
 }
 
+export function getConfiguredMarketDataProviderId(): MarketDataProviderId {
+  return resolveProviderId();
+}
+
 function resolveProviderId(): MarketDataProviderId {
   const rawValue = process.env.MARKET_DATA_PROVIDER;
   if (!rawValue || rawValue.trim().length === 0) {

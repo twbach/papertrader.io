@@ -1,4 +1,4 @@
-import { getThetaDataMode, type ThetaDataMode } from '@/lib/theta-config';
+import { getMarketDataMode, type MarketDataMode } from '@/lib/market-data-config';
 import { getMockExpirations, getMockOptionChain, getMockUnderlyingQuote } from './mocks';
 import { getMarketDataProvider } from './provider-factory';
 import type { OptionChainResult, UnderlyingQuote } from './types';
@@ -8,14 +8,22 @@ import {
   type MarketDataErrorType,
 } from './errors';
 import type { MarketDataEndpoint, MarketDataProviderId } from './provider';
+import { getCacheKey, getCachedValue, setCachedValue } from './cache';
 
 export async function getExpirations(symbol: string): Promise<string[]> {
-  const mode = getThetaDataMode();
+  const mode = getMarketDataMode();
   if (mode === 'mock') {
     return getMockExpirations();
   }
+  const cacheKey = getCacheKey('expirations', symbol);
+  const cached = getCachedValue<string[]>(cacheKey);
+  if (cached) {
+    return cached;
+  }
   try {
-    return await getMarketDataProvider().getExpirations(symbol);
+    const result = await getMarketDataProvider().getExpirations(symbol);
+    setCachedValue(cacheKey, result);
+    return result;
   } catch (error) {
     return handleProviderFailure({
       endpoint: 'expirations',
@@ -28,12 +36,19 @@ export async function getExpirations(symbol: string): Promise<string[]> {
 }
 
 export async function getOptionChain(symbol: string, expiration: string): Promise<OptionChainResult> {
-  const mode = getThetaDataMode();
+  const mode = getMarketDataMode();
   if (mode === 'mock') {
     return getMockOptionChain(symbol, expiration);
   }
+  const cacheKey = getCacheKey('option-chain', symbol, expiration);
+  const cached = getCachedValue<OptionChainResult>(cacheKey);
+  if (cached) {
+    return cached;
+  }
   try {
-    return await getMarketDataProvider().getOptionChain(symbol, expiration);
+    const result = await getMarketDataProvider().getOptionChain(symbol, expiration);
+    setCachedValue(cacheKey, result);
+    return result;
   } catch (error) {
     return handleProviderFailure({
       endpoint: 'option-chain',
@@ -47,12 +62,19 @@ export async function getOptionChain(symbol: string, expiration: string): Promis
 }
 
 export async function getUnderlyingQuote(symbol: string): Promise<UnderlyingQuote> {
-  const mode = getThetaDataMode();
+  const mode = getMarketDataMode();
   if (mode === 'mock') {
     return getMockUnderlyingQuote(symbol);
   }
+  const cacheKey = getCacheKey('underlying-quote', symbol);
+  const cached = getCachedValue<UnderlyingQuote>(cacheKey);
+  if (cached) {
+    return cached;
+  }
   try {
-    return await getMarketDataProvider().getUnderlyingQuote(symbol);
+    const result = await getMarketDataProvider().getUnderlyingQuote(symbol);
+    setCachedValue(cacheKey, result);
+    return result;
   } catch (error) {
     return handleProviderFailure({
       endpoint: 'underlying-quote',
@@ -68,7 +90,7 @@ interface FailureHandler<T> {
   readonly endpoint: MarketDataEndpoint;
   readonly error: unknown;
   readonly fallback: () => T;
-  readonly mode: ThetaDataMode;
+  readonly mode: MarketDataMode;
   readonly symbol: string;
   readonly expiration?: string;
 }
@@ -128,7 +150,7 @@ interface MarketDataLogPayload {
   readonly provider: MarketDataProviderId;
   readonly endpoint: MarketDataEndpoint;
   readonly symbol: string;
-  readonly mode: ThetaDataMode;
+  readonly mode: MarketDataMode;
   readonly requestId: string;
   readonly durationMs: number;
   readonly fallback: boolean;

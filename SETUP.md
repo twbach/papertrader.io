@@ -25,7 +25,7 @@ cp .env.example apps/web/.env.local
 ```
 
 Edit `.env` and add your market data credentials.
-Set `THETA_DATA_MODE` to control data sourcing:
+Set `DATA_MODE` to control data sourcing:
 
 - `auto` _(default)_ – best-effort live call with fallback to mocks.
 - `live` – live calls only, errors bubble to the UI.
@@ -40,9 +40,23 @@ MARKET_DATA_PROVIDER=massive|theta (default: massive)
 MASSIVE_API_KEY=<your Massive REST key>
 MASSIVE_API_URL=https://api.massive.com/v1 (override as needed)
 THETA_API_URL=http://0.0.0.0:25503/v3 (used when provider=theta)
+EODHD_API_KEY=<your EODHD API key> (required for stock quotes, get yours at https://eodhd.com/register)
 ```
 
+**Note:** Option data is fetched from the selected `MARKET_DATA_PROVIDER` (Massive or Theta), while stock quotes are always fetched from EODHD (15-minute delayed).
+
 Invalid values make the server crash on startup so you notice misconfigurations immediately.
+
+### Verify Massive Connectivity
+
+Run the helper script before debugging the UI to make sure your Massive credentials work:
+
+```bash
+cd apps/web
+MASSIVE_API_KEY=sk_your_key pnpm verify:massive SPY
+```
+
+It fetches expirations and option chain from your configured provider, and the underlying stock quote from EODHD, printing detailed errors if any step fails (auth, symbols, etc.).
 
 ### 3. Start Infrastructure (PostgreSQL + Redis + Greeks Service)
 

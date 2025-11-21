@@ -1,4 +1,4 @@
-import type { ThetaDataMode } from '@/lib/theta-config';
+import type { MarketDataMode } from '@/lib/market-data-config';
 import type { MarketDataEndpoint, MarketDataProviderId } from './provider';
 
 export type MarketDataErrorType = 'network' | 'http' | 'parse' | 'auth' | 'rate-limit';
@@ -40,7 +40,7 @@ export class MarketDataProviderError extends Error {
 }
 
 interface MarketDataErrorArgs extends MarketDataProviderErrorArgs {
-  readonly mode: ThetaDataMode;
+  readonly mode: MarketDataMode;
   readonly timestamp?: string;
 }
 
@@ -50,7 +50,7 @@ export class MarketDataError extends Error {
   public readonly symbol: string;
   public readonly expiration?: string;
   public readonly errorType: MarketDataErrorType;
-  public readonly mode: ThetaDataMode;
+  public readonly mode: MarketDataMode;
   public readonly timestamp: string;
   public readonly requestId: string;
   public readonly durationMs: number;
