@@ -1,6 +1,7 @@
 import { initTRPC } from '@trpc/server';
 import superjson from 'superjson';
 import { ZodError } from 'zod';
+import { ThetaDataError } from '@/lib/theta-client';
 
 /**
  * Initialization of tRPC backend
@@ -9,12 +10,24 @@ import { ZodError } from 'zod';
 const t = initTRPC.create({
   transformer: superjson,
   errorFormatter({ shape, error }) {
+    const thetaData =
+      error.cause instanceof ThetaDataError
+        ? {
+            endpoint: error.cause.endpoint,
+            errorType: error.cause.errorType,
+            expiration: error.cause.expiration,
+            mode: error.cause.mode,
+            requestId: error.cause.requestId,
+            symbol: error.cause.symbol,
+            timestamp: error.cause.timestamp,
+          }
+        : null;
     return {
       ...shape,
       data: {
         ...shape.data,
-        zodError:
-          error.cause instanceof ZodError ? error.cause.flatten() : null,
+        theta: thetaData,
+        zodError: error.cause instanceof ZodError ? error.cause.flatten() : null,
       },
     };
   },

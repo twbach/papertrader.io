@@ -1,9 +1,11 @@
+import { TRPCError } from '@trpc/server';
 import { publicProcedure, router } from '../trpc';
 import { z } from 'zod';
 import {
   getExpirations,
   getOptionChain,
   getUnderlyingQuote,
+  ThetaDataError,
 } from '@/lib/theta-client';
 
 export const optionsRouter = router({
@@ -14,11 +16,15 @@ export const optionsRouter = router({
     .input(
       z.object({
         symbol: z.string().min(1).max(10).toUpperCase(),
-      })
+      }),
     )
     .query(async ({ input }) => {
-      const expirations = await getExpirations(input.symbol);
-      return { expirations };
+      try {
+        const expirations = await getExpirations(input.symbol);
+        return { expirations };
+      } catch (error) {
+        throwThetaTrpcError(error);
+      }
     }),
 
   /**
@@ -29,16 +35,17 @@ export const optionsRouter = router({
       z.object({
         symbol: z.string().min(1).max(10).toUpperCase(),
         expiration: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-      })
+      }),
     )
     .query(async ({ input }) => {
-      const { calls, puts } = await getOptionChain(input.symbol, input.expiration);
-
-      // Sort by strike
-      calls.sort((a, b) => a.strike - b.strike);
-      puts.sort((a, b) => a.strike - b.strike);
-
-      return { calls, puts };
+      try {
+        const { calls, puts } = await getOptionChain(input.symbol, input.expiration);
+        calls.sort((a, b) => a.strike - b.strike);
+        puts.sort((a, b) => a.strike - b.strike);
+        return { calls, puts };
+      } catch (error) {
+        throwThetaTrpcError(error);
+      }
     }),
 
   /**
@@ -48,10 +55,28 @@ export const optionsRouter = router({
     .input(
       z.object({
         symbol: z.string().min(1).max(10).toUpperCase(),
-      })
+      }),
     )
     .query(async ({ input }) => {
-      const quote = await getUnderlyingQuote(input.symbol);
-      return quote;
+      try {
+        const quote = await getUnderlyingQuote(input.symbol);
+        return quote;
+      } catch (error) {
+        throwThetaTrpcError(error);
+      }
     }),
 });
+
+function throwThetaTrpcError(error: unknown): never {
+  if (error instanceof ThetaDataError) {
+    throw new TRPCError({
+      code: 'BAD_GATEWAY',
+      message: error.message,
+      cause: error,
+    });
+  }
+  if (error instanceof Error) {
+    throw error;
+  }
+  throw new Error('Unknown Theta router error');
+}

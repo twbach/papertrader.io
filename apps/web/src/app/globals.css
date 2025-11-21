@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 @import '../styles/retro-ui-theme.css';
 
 @theme inline {
@@ -30,11 +30,19 @@
 
 @layer utilities {
   .font-head {
-    font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+    font-family:
+      var(--font-geist-sans),
+      system-ui,
+      -apple-system,
+      sans-serif;
   }
 
   .font-body {
-    font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+    font-family:
+      var(--font-geist-sans),
+      system-ui,
+      -apple-system,
+      sans-serif;
   }
 }
 
@@ -61,5 +69,9 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  font-family:
+    var(--font-geist-sans),
+    system-ui,
+    -apple-system,
+    sans-serif;
 }

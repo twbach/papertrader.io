@@ -48,7 +48,7 @@ export function OptionsChain({ symbol }: OptionsChainProps) {
   };
 
   const handleRemoveLeg = (id: string) => {
-    setLegs(legs.filter(leg => leg.id !== id));
+    setLegs(legs.filter((leg) => leg.id !== id));
   };
 
   // Fetch option chain for selected expiration
@@ -59,7 +59,7 @@ export function OptionsChain({ symbol }: OptionsChainProps) {
     },
     {
       enabled: !!selectedExpiration,
-    }
+    },
   );
 
   if (quoteLoading || expirationsLoading) {
@@ -73,9 +73,7 @@ export function OptionsChain({ symbol }: OptionsChainProps) {
   if (!expirationsData?.expirations || !underlyingData) {
     return (
       <Card className="p-12 bg-card">
-        <div className="text-center text-muted-foreground py-12">
-          Unable to load data
-        </div>
+        <div className="text-center text-muted-foreground py-12">Unable to load data</div>
       </Card>
     );
   }
@@ -89,10 +87,13 @@ export function OptionsChain({ symbol }: OptionsChainProps) {
             <h1 className="text-4xl font-bold text-primary">{symbol}</h1>
             {underlyingData && (
               <div className="flex items-baseline gap-3 mt-2">
-                <span className="text-3xl font-bold text-card-foreground">${underlyingData.last.toFixed(2)}</span>
+                <span className="text-3xl font-bold text-card-foreground">
+                  ${underlyingData.last.toFixed(2)}
+                </span>
                 <span
-                  className={`text-lg font-bold ${underlyingData.change >= 0 ? 'text-green-400' : 'text-destructive'
-                    }`}
+                  className={`text-lg font-bold ${
+                    underlyingData.change >= 0 ? 'text-green-400' : 'text-destructive'
+                  }`}
                 >
                   {underlyingData.change >= 0 ? '+' : ''}
                   {underlyingData.change.toFixed(2)} ({underlyingData.changePercent.toFixed(2)}%)
@@ -135,9 +136,7 @@ export function OptionsChain({ symbol }: OptionsChainProps) {
       )}
 
       {/* Legs Panel - Fixed at bottom */}
-      {legs.length > 0 && (
-        <LegsPanel legs={legs} onRemoveLeg={handleRemoveLeg} />
-      )}
+      {legs.length > 0 && <LegsPanel legs={legs} onRemoveLeg={handleRemoveLeg} />}
     </div>
   );
 }
