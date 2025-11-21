@@ -3,7 +3,7 @@
 
 import { useMemo, useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { OptionQuote } from '@/lib/theta-client';
+import { OptionQuote } from '@/lib/market-data';
 import { OptionLeg } from '@/types/option-leg';
 import { AddLegDialog } from './AddLegDialog';
 

@@ -1,7 +1,7 @@
 import { initTRPC } from '@trpc/server';
 import superjson from 'superjson';
 import { ZodError } from 'zod';
-import { ThetaDataError } from '@/lib/theta-client';
+import { MarketDataError } from '@/lib/market-data';
 
 /**
  * Initialization of tRPC backend
@@ -11,12 +11,13 @@ const t = initTRPC.create({
   transformer: superjson,
   errorFormatter({ shape, error }) {
     const thetaData =
-      error.cause instanceof ThetaDataError
+      error.cause instanceof MarketDataError
         ? {
             endpoint: error.cause.endpoint,
             errorType: error.cause.errorType,
             expiration: error.cause.expiration,
             mode: error.cause.mode,
+            provider: error.cause.provider,
             requestId: error.cause.requestId,
             symbol: error.cause.symbol,
             timestamp: error.cause.timestamp,

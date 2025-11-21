@@ -5,8 +5,8 @@ import {
   getExpirations,
   getOptionChain,
   getUnderlyingQuote,
-  ThetaDataError,
-} from '@/lib/theta-client';
+  MarketDataError,
+} from '@/lib/market-data';
 
 export const optionsRouter = router({
   /**
@@ -68,7 +68,7 @@ export const optionsRouter = router({
 });
 
 function throwThetaTrpcError(error: unknown): never {
-  if (error instanceof ThetaDataError) {
+  if (error instanceof MarketDataError) {
     throw new TRPCError({
       code: 'BAD_GATEWAY',
       message: error.message,
