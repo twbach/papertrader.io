@@ -10,24 +10,26 @@ import { MarketDataError } from '@/lib/market-data';
 const t = initTRPC.create({
   transformer: superjson,
   errorFormatter({ shape, error }) {
-    const thetaData =
+    const marketData =
       error.cause instanceof MarketDataError
         ? {
-            endpoint: error.cause.endpoint,
-            errorType: error.cause.errorType,
-            expiration: error.cause.expiration,
-            mode: error.cause.mode,
             provider: error.cause.provider,
-            requestId: error.cause.requestId,
+            endpoint: error.cause.endpoint,
             symbol: error.cause.symbol,
+            expiration: error.cause.expiration,
+            errorType: error.cause.errorType,
+            mode: error.cause.mode,
             timestamp: error.cause.timestamp,
+            requestId: error.cause.requestId,
+            durationMs: error.cause.durationMs,
+            metadata: error.cause.metadata,
           }
         : null;
     return {
       ...shape,
       data: {
         ...shape.data,
-        theta: thetaData,
+        marketData,
         zodError: error.cause instanceof ZodError ? error.cause.flatten() : null,
       },
     };

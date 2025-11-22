@@ -25,7 +25,7 @@ export const optionsRouter = router({
         const expirations = await getExpirations(input.symbol);
         return { expirations };
       } catch (error) {
-        throwThetaTrpcError(error);
+        throwMarketDataTrpcError(error);
       }
     }),
 
@@ -46,7 +46,7 @@ export const optionsRouter = router({
         puts.sort((a, b) => a.strike - b.strike);
         return { calls, puts };
       } catch (error) {
-        throwThetaTrpcError(error);
+        throwMarketDataTrpcError(error);
       }
     }),
 
@@ -64,7 +64,7 @@ export const optionsRouter = router({
         const quote = await getUnderlyingQuote(input.symbol);
         return quote;
       } catch (error) {
-        throwThetaTrpcError(error);
+        throwMarketDataTrpcError(error);
       }
     }),
 
@@ -76,10 +76,11 @@ export const optionsRouter = router({
   }),
 });
 
-function throwThetaTrpcError(error: unknown): never {
+function throwMarketDataTrpcError(error: unknown): never {
   if (error instanceof MarketDataError) {
+    const errorCode = mapMarketDataErrorTypeToTrpcCode(error.errorType);
     throw new TRPCError({
-      code: 'BAD_GATEWAY',
+      code: errorCode,
       message: error.message,
       cause: error,
     });
@@ -87,5 +88,22 @@ function throwThetaTrpcError(error: unknown): never {
   if (error instanceof Error) {
     throw error;
   }
-  throw new Error('Unknown Theta router error');
+  throw new Error('Unknown market data error');
+}
+
+function mapMarketDataErrorTypeToTrpcCode(
+  errorType: MarketDataError['errorType'],
+): TRPCError['code'] {
+  switch (errorType) {
+    case 'rate-limit':
+      return 'TOO_MANY_REQUESTS';
+    case 'auth':
+      return 'UNAUTHORIZED';
+    case 'parse':
+      return 'INTERNAL_SERVER_ERROR';
+    case 'network':
+    case 'http':
+    default:
+      return 'BAD_GATEWAY';
+  }
 }
