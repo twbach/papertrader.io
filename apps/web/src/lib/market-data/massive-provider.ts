@@ -157,13 +157,21 @@ async function getUnderlyingQuote(symbol: string): Promise<UnderlyingQuote> {
 
 function buildExpirationList(results: ListOptionsContracts200ResponseResultsInner[]): string[] {
   const now = Date.now();
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+  const todayStart = today.getTime();
   const expirations = new Set<string>();
   results.forEach((contract) => {
     if (!contract.expiration_date) {
       return;
     }
     const timestamp = Date.parse(contract.expiration_date);
-    if (Number.isNaN(timestamp) || timestamp <= now) {
+    if (Number.isNaN(timestamp)) {
+      return;
+    }
+    // Keep expirations that are today or in the future
+    // Compare against start of today to include today's expirations
+    if (timestamp < todayStart) {
       return;
     }
     expirations.add(contract.expiration_date);
