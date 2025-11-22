@@ -10,6 +10,13 @@ const FETCH_TIMEOUT_MS = 4500;
 const MAX_EXPIRATIONS = 20;
 const SHOULD_LOG_VERBOSE = process.env.THETA_DATA_VERBOSE_LOGS === 'true';
 
+function buildThetaUrl(path: string, params: Record<string, string>): string {
+  const encodedParams = Object.entries(params)
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+    .join('&');
+  return `${THETA_BASE_URL}${path}?${encodedParams}`;
+}
+
 interface ThetaRequestContext {
   readonly endpoint: MarketDataEndpoint;
   readonly symbol: string;
@@ -33,7 +40,7 @@ export function createThetaProvider(): MarketDataProvider {
 async function getExpirations(symbol: string): Promise<string[]> {
   const context: ThetaRequestContext = { endpoint: 'expirations', symbol };
   return executeThetaRequest(context, async () => {
-    const url = `${THETA_BASE_URL}/option/list/expirations?symbol=${symbol}`;
+    const url = buildThetaUrl('/option/list/expirations', { symbol });
     const csv = await fetchCsvFromTheta(url);
     const rows = parseCsvOrThrow(csv, context.endpoint);
     return filterExpirations(rows);
@@ -44,7 +51,11 @@ async function getOptionChain(symbol: string, expiration: string): Promise<Optio
   const context: ThetaRequestContext = { endpoint: 'option-chain', symbol, expiration };
   return executeThetaRequest(context, async () => {
     const formattedDate = expiration.replace(/-/g, '');
-    const url = `${THETA_BASE_URL}/option/snapshot/quote?symbol=${symbol}&expiration=${formattedDate}&format=csv`;
+    const url = buildThetaUrl('/option/snapshot/quote', {
+      symbol,
+      expiration: formattedDate,
+      format: 'csv',
+    });
     const csv = await fetchCsvFromTheta(url);
     const rows = parseCsvOrThrow(csv, context.endpoint);
     return transformOptionRows(rows, expiration);
