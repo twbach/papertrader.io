@@ -5,8 +5,10 @@ import {
   getExpirations,
   getOptionChain,
   getUnderlyingQuote,
+  getCacheStats,
   MarketDataError,
 } from '@/lib/market-data';
+import NodeCache from 'node-cache';
 
 export const optionsRouter = router({
   /**
@@ -65,6 +67,13 @@ export const optionsRouter = router({
         throwThetaTrpcError(error);
       }
     }),
+
+  /**
+   * Get market-data cache stats
+   */
+  getCacheStats: publicProcedure.query((): NodeCache.Stats => {
+    return getCacheStats();
+  }),
 });
 
 function throwThetaTrpcError(error: unknown): never {
