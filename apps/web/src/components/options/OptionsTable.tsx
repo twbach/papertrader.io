@@ -1,7 +1,7 @@
 // To rollback to RetroUI: Change imports from '@/components/ui/*' to '@/components/retroui/*'
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { OptionQuote } from '@/lib/market-data';
 import { OptionLeg } from '@/types/option-leg';
@@ -110,6 +110,15 @@ export function OptionsTable({
     strike: number;
   } | null>(null);
 
+  // Drag to scroll state
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [startY, setStartY] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [scrollTop, setScrollTop] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const atmRowRef = useRef<HTMLDivElement>(null);
+
   const atmStrike = useMemo(() => {
     const closest = calls.reduce((prev, curr) =>
       Math.abs(curr.strike - underlyingPrice) < Math.abs(prev.strike - underlyingPrice)
@@ -119,13 +128,56 @@ export function OptionsTable({
     return closest?.strike || underlyingPrice;
   }, [calls, underlyingPrice]);
 
+  // Scroll to ATM on mount and when expiration changes
+  useEffect(() => {
+    if (atmRowRef.current && containerRef.current) {
+      const container = containerRef.current;
+      const row = atmRowRef.current;
+
+      // Calculate center position
+      const rowTop = row.offsetTop;
+      const rowHeight = row.offsetHeight;
+      const containerHeight = container.clientHeight;
+
+      container.scrollTop = rowTop - containerHeight / 2 + rowHeight / 2;
+    }
+  }, [expiration, atmStrike]); // Re-run when expiration or ATM strike changes
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!containerRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - containerRef.current.offsetLeft);
+    setStartY(e.pageY - containerRef.current.offsetTop);
+    setScrollLeft(containerRef.current.scrollLeft);
+    setScrollTop(containerRef.current.scrollTop);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !containerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - containerRef.current.offsetLeft;
+    const y = e.pageY - containerRef.current.offsetTop;
+    const walkX = (x - startX) * 1.5; // Scroll speed multiplier
+    const walkY = (y - startY) * 1.5;
+    containerRef.current.scrollLeft = scrollLeft - walkX;
+    containerRef.current.scrollTop = scrollTop - walkY;
+  };
+
   const handlePriceClick = (
     type: 'call' | 'put',
     priceType: 'bid' | 'ask' | 'last',
     price: number,
     strike: number,
   ) => {
-    if (!onAddLeg) return;
+    if (!onAddLeg || isDragging) return; // Prevent click when dragging
     setSelectedOption({ type, priceType, price, strike });
     setDialogOpen(true);
   };
@@ -162,153 +214,163 @@ export function OptionsTable({
   }, [calls, puts, atmStrike]);
 
   return (
-    <Card className="w-full overflow-x-auto border-2 border-border bg-card">
-      <div className="min-w-[1100px]">
-        <div className="border-b-2 border-border bg-background px-4 py-3">
-          <div className="grid grid-cols-[repeat(11,minmax(80px,1fr))] text-xs font-bold uppercase text-muted-foreground">
-            <div className="col-span-5 text-right pr-3">Calls</div>
-            <div className="col-span-1 text-center">Strike</div>
-            <div className="col-span-5 text-left pl-3">Puts</div>
+    <Card className="w-full border-2 border-border bg-card overflow-hidden">
+      <div
+        ref={containerRef}
+        className={`h-[600px] overflow-auto relative ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        onMouseDown={handleMouseDown}
+        onMouseLeave={handleMouseLeave}
+        onMouseUp={handleMouseUp}
+        onMouseMove={handleMouseMove}
+      >
+        <div className="min-w-[1100px]">
+          <div className="sticky top-0 z-10 border-b-2 border-border bg-card px-4 py-3 shadow-sm">
+            <div className="grid grid-cols-[repeat(11,minmax(80px,1fr))] text-xs font-bold uppercase text-muted-foreground">
+              <div className="col-span-5 text-right pr-3">Calls</div>
+              <div className="col-span-1 text-center">Strike</div>
+              <div className="col-span-5 text-left pl-3">Puts</div>
+            </div>
+            <div className="mt-2 grid grid-cols-[repeat(11,minmax(80px,1fr))] text-[11px] font-bold uppercase text-muted-foreground">
+              {callColumns.map((column) => (
+                <div key={`call-header-${column.key}`} className="text-right px-3">
+                  {column.label}
+                </div>
+              ))}
+              <div className="text-center px-3">Strike</div>
+              {putColumns.map((column) => (
+                <div key={`put-header-${column.key}`} className="text-left px-3">
+                  {column.label}
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="mt-2 grid grid-cols-[repeat(11,minmax(80px,1fr))] text-[11px] font-bold uppercase text-muted-foreground">
-            {callColumns.map((column) => (
-              <div key={`call-header-${column.key}`} className="text-right px-3">
-                {column.label}
-              </div>
-            ))}
-            <div className="text-center px-3">Strike</div>
-            {putColumns.map((column) => (
-              <div key={`put-header-${column.key}`} className="text-left px-3">
-                {column.label}
-              </div>
-            ))}
-          </div>
-        </div>
-        <div>
-          {rowData.map((row, index) => {
-            // Check if this strike has any legs in the strategy
-            const callLeg = legs.find(
-              (leg) =>
-                leg.strike === row.strike && leg.type === 'call' && leg.expiration === expiration,
-            );
-            const putLeg = legs.find(
-              (leg) =>
-                leg.strike === row.strike && leg.type === 'put' && leg.expiration === expiration,
-            );
-            const hasCallLeg = !!callLeg;
-            const hasPutLeg = !!putLeg;
+          <div>
+            {rowData.map((row, index) => {
+              // Check if this strike has any legs in the strategy
+              const callLeg = legs.find(
+                (leg) =>
+                  leg.strike === row.strike && leg.type === 'call' && leg.expiration === expiration,
+              );
+              const putLeg = legs.find(
+                (leg) =>
+                  leg.strike === row.strike && leg.type === 'put' && leg.expiration === expiration,
+              );
+              const hasCallLeg = !!callLeg;
+              const hasPutLeg = !!putLeg;
 
-            const rowBg = row.isATM ? 'bg-accent' : index % 2 === 0 ? 'bg-card' : 'bg-background';
-            return (
-              <div
-                key={row.strike}
-                className={`grid grid-cols-[repeat(11,minmax(80px,1fr))] border-b border-border text-sm text-card-foreground transition-colors hover:bg-muted ${rowBg}`}
-              >
-                {/* Call columns */}
+              const rowBg = row.isATM ? 'bg-accent' : index % 2 === 0 ? 'bg-card' : 'bg-background';
+              return (
                 <div
-                  className={`col-span-5 grid grid-cols-5 gap-0 ${
-                    hasCallLeg
+                  key={row.strike}
+                  ref={row.isATM ? atmRowRef : null}
+                  className={`grid grid-cols-[repeat(11,minmax(80px,1fr))] border-b border-border text-sm text-card-foreground transition-colors hover:bg-muted ${rowBg}`}
+                >
+                  {/* Call columns */}
+                  <div
+                    className={`col-span-5 grid grid-cols-5 gap-0 ${hasCallLeg
                       ? callLeg.action === 'buy'
                         ? 'border-l-4 border-l-green-500 bg-green-500/10'
                         : 'border-l-4 border-l-red-500 bg-red-500/10'
                       : ''
-                  }`}
-                >
-                  {callColumns.map((column) => {
-                    const isPriceColumn =
-                      column.key === 'callBid' ||
-                      column.key === 'callAsk' ||
-                      column.key === 'callLast';
-                    const price =
-                      column.key === 'callBid'
-                        ? row.callBid
-                        : column.key === 'callAsk'
-                          ? row.callAsk
-                          : row.callLast;
-                    const priceType =
-                      column.key === 'callBid' ? 'bid' : column.key === 'callAsk' ? 'ask' : 'last';
-                    return (
-                      <div
-                        key={`call-${column.key}-${row.strike}`}
-                        className={`px-3 py-2 text-right font-mono ${column.emphasisClass || ''} ${
-                          isPriceColumn && onAddLeg && price > 0
+                      }`}
+                  >
+                    {callColumns.map((column) => {
+                      const isPriceColumn =
+                        column.key === 'callBid' ||
+                        column.key === 'callAsk' ||
+                        column.key === 'callLast';
+                      const price =
+                        column.key === 'callBid'
+                          ? row.callBid
+                          : column.key === 'callAsk'
+                            ? row.callAsk
+                            : row.callLast;
+                      const priceType =
+                        column.key === 'callBid' ? 'bid' : column.key === 'callAsk' ? 'ask' : 'last';
+                      return (
+                        <div
+                          key={`call-${column.key}-${row.strike}`}
+                          className={`px-3 py-2 text-right font-mono ${column.emphasisClass || ''} ${isPriceColumn && onAddLeg && price > 0
                             ? 'cursor-pointer hover:underline'
                             : ''
-                        } ${hasCallLeg ? 'font-semibold' : ''}`}
-                        onClick={() => {
-                          if (isPriceColumn && onAddLeg && price > 0) {
-                            handlePriceClick('call', priceType, price, row.strike);
-                          }
-                        }}
-                      >
-                        {column.formatter(row[column.key])}
-                      </div>
-                    );
-                  })}
-                </div>
-                <div
-                  className={`px-3 py-2 text-center font-bold ${row.isATM ? 'bg-accent font-black text-foreground' : ''}`}
-                >
-                  {row.strike.toFixed(0)}
-                </div>
-                {/* Put columns */}
-                <div
-                  className={`col-span-5 grid grid-cols-5 gap-0 ${
-                    hasPutLeg
+                            } ${hasCallLeg ? 'font-semibold' : ''}`}
+                          onClick={() => {
+                            // Prevent click if we were dragging
+                            if (isDragging) return;
+                            if (isPriceColumn && onAddLeg && price > 0) {
+                              handlePriceClick('call', priceType, price, row.strike);
+                            }
+                          }}
+                        >
+                          {column.formatter(row[column.key])}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div
+                    className={`px-3 py-2 text-center font-bold ${row.isATM ? 'bg-accent font-black text-foreground' : ''}`}
+                  >
+                    {row.strike.toFixed(0)}
+                  </div>
+                  {/* Put columns */}
+                  <div
+                    className={`col-span-5 grid grid-cols-5 gap-0 ${hasPutLeg
                       ? putLeg.action === 'buy'
                         ? 'border-l-4 border-l-green-500 bg-green-500/10'
                         : 'border-l-4 border-l-red-500 bg-red-500/10'
                       : ''
-                  }`}
-                >
-                  {putColumns.map((column) => {
-                    const isPriceColumn =
-                      column.key === 'putLast' ||
-                      column.key === 'putBid' ||
-                      column.key === 'putAsk';
-                    const price =
-                      column.key === 'putLast'
-                        ? row.putLast
-                        : column.key === 'putBid'
-                          ? row.putBid
-                          : row.putAsk;
-                    const priceType =
-                      column.key === 'putLast' ? 'last' : column.key === 'putBid' ? 'bid' : 'ask';
-                    return (
-                      <div
-                        key={`put-${column.key}-${row.strike}`}
-                        className={`px-3 py-2 text-left font-mono ${column.emphasisClass || ''} ${
-                          isPriceColumn && onAddLeg && price > 0
+                      }`}
+                  >
+                    {putColumns.map((column) => {
+                      const isPriceColumn =
+                        column.key === 'putLast' ||
+                        column.key === 'putBid' ||
+                        column.key === 'putAsk';
+                      const price =
+                        column.key === 'putLast'
+                          ? row.putLast
+                          : column.key === 'putBid'
+                            ? row.putBid
+                            : row.putAsk;
+                      const priceType =
+                        column.key === 'putLast' ? 'last' : column.key === 'putBid' ? 'bid' : 'ask';
+                      return (
+                        <div
+                          key={`put-${column.key}-${row.strike}`}
+                          className={`px-3 py-2 text-left font-mono ${column.emphasisClass || ''} ${isPriceColumn && onAddLeg && price > 0
                             ? 'cursor-pointer hover:underline'
                             : ''
-                        } ${hasPutLeg ? 'font-semibold' : ''}`}
-                        onClick={() => {
-                          if (isPriceColumn && onAddLeg && price > 0) {
-                            handlePriceClick('put', priceType, price, row.strike);
-                          }
-                        }}
-                      >
-                        {column.formatter(row[column.key])}
-                      </div>
-                    );
-                  })}
+                            } ${hasPutLeg ? 'font-semibold' : ''}`}
+                          onClick={() => {
+                            // Prevent click if we were dragging
+                            if (isDragging) return;
+                            if (isPriceColumn && onAddLeg && price > 0) {
+                              handlePriceClick('put', priceType, price, row.strike);
+                            }
+                          }}
+                        >
+                          {column.formatter(row[column.key])}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+          {selectedOption && (
+            <AddLegDialog
+              open={dialogOpen}
+              onOpenChange={setDialogOpen}
+              optionType={selectedOption.type}
+              strike={selectedOption.strike}
+              expiration={expiration}
+              priceType={selectedOption.priceType}
+              price={selectedOption.price}
+              onAddLeg={handleAddLeg}
+            />
+          )}
         </div>
-        {selectedOption && (
-          <AddLegDialog
-            open={dialogOpen}
-            onOpenChange={setDialogOpen}
-            optionType={selectedOption.type}
-            strike={selectedOption.strike}
-            expiration={expiration}
-            priceType={selectedOption.priceType}
-            price={selectedOption.price}
-            onAddLeg={handleAddLeg}
-          />
-        )}
       </div>
     </Card>
   );

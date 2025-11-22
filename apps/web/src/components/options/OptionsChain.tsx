@@ -49,6 +49,7 @@ export function OptionsChain({
   // Update selected expiration when default changes
   useEffect(() => {
     if (defaultExpiration && !selectedExpiration) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedExpiration(defaultExpiration);
     }
   }, [defaultExpiration, selectedExpiration]);
@@ -101,9 +102,8 @@ export function OptionsChain({
                   ${underlyingData.last.toFixed(2)}
                 </span>
                 <span
-                  className={`text-lg font-bold ${
-                    underlyingData.change >= 0 ? 'text-green-400' : 'text-destructive'
-                  }`}
+                  className={`text-lg font-bold ${underlyingData.change >= 0 ? 'text-green-400' : 'text-destructive'
+                    }`}
                 >
                   {underlyingData.change >= 0 ? '+' : ''}
                   {underlyingData.change.toFixed(2)} ({underlyingData.changePercent.toFixed(2)}%)
