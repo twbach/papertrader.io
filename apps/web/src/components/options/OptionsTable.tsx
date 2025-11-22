@@ -120,6 +120,7 @@ export function OptionsTable({
   const atmRowRef = useRef<HTMLDivElement>(null);
 
   const atmStrike = useMemo(() => {
+    if (!calls || calls.length === 0) return underlyingPrice;
     const closest = calls.reduce((prev, curr) =>
       Math.abs(curr.strike - underlyingPrice) < Math.abs(prev.strike - underlyingPrice)
         ? curr
