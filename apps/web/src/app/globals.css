@@ -45,7 +45,7 @@
 @layer utilities {
   .font-head {
     font-family:
-      var(--font-geist-sans),
+      var(--font-sans),
       system-ui,
       -apple-system,
       sans-serif;
@@ -53,7 +53,7 @@
 
   .font-body {
     font-family:
-      var(--font-geist-sans),
+      var(--font-sans),
       system-ui,
       -apple-system,
       sans-serif;
