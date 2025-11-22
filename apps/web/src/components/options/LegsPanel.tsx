@@ -1,7 +1,7 @@
 // To rollback to RetroUI: Change imports from '@/components/ui/*' to '@/components/retroui/*'
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +16,7 @@ interface LegsPanelProps {
 export function LegsPanel({ legs, onRemoveLeg }: LegsPanelProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isManuallyExpanded, setIsManuallyExpanded] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     let lastScrollY = window.scrollY;
@@ -49,6 +50,14 @@ export function LegsPanel({ legs, onRemoveLeg }: LegsPanelProps) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [isManuallyExpanded]);
 
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
   const calculateTotalCost = () => {
     return legs.reduce((total, leg) => {
       const cost = leg.price * leg.quantity * 100;
@@ -59,12 +68,23 @@ export function LegsPanel({ legs, onRemoveLeg }: LegsPanelProps) {
   const totalCost = calculateTotalCost();
 
   const toggleCollapse = () => {
-    setIsCollapsed(!isCollapsed);
-    setIsManuallyExpanded(!isCollapsed); // If expanding, mark as manually expanded
+    // Compute next state first
+    const nextIsCollapsed = !isCollapsed;
+    setIsCollapsed(nextIsCollapsed);
+    setIsManuallyExpanded(!nextIsCollapsed); // If expanding, mark as manually expanded
 
-    // Reset manual expansion after 5 seconds
-    if (!isCollapsed) {
-      setTimeout(() => setIsManuallyExpanded(false), 5000);
+    // Clear any existing timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    // Only schedule reset when expanding (nextIsCollapsed is false)
+    if (!nextIsCollapsed) {
+      timeoutRef.current = setTimeout(() => {
+        setIsManuallyExpanded(false);
+        timeoutRef.current = null;
+      }, 5000);
     }
   };
 
