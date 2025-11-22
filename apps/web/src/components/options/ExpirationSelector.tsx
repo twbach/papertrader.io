@@ -3,6 +3,7 @@
 
 import { useMemo, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 interface ExpirationSelectorProps {
   expirations: string[];
@@ -55,18 +56,18 @@ export function ExpirationSelector({
   }, [expirationsWithDays, selectedExpiration]);
 
   return (
-    <Card className="p-0 w-full overflow-hidden bg-card border-2 border-border">
-      <div className="bg-background px-4 py-3 border-b-2 border-border">
+    <Card className="w-full overflow-hidden bg-card border-border">
+      <div className="bg-background px-4 py-3 border-b border-border">
         <div className="flex items-center gap-4 mb-3">
-          <span className="text-xs text-muted-foreground uppercase tracking-wider font-bold">
+          <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">
             EXPIRATION: {selectedDaysOut}D
           </span>
         </div>
         <div className="overflow-x-auto">
-          <div className="flex gap-2 min-w-max">
+          <div className="flex gap-4 min-w-max">
             {Object.entries(groupExpirationsByMonth).map(([monthYear, dates]) => (
-              <div key={monthYear} className="flex flex-col gap-1">
-                <div className="text-xs text-muted-foreground text-center px-2 mb-1 bg-muted font-bold">
+              <div key={monthYear} className="flex flex-col gap-2">
+                <div className="text-xs text-muted-foreground text-center px-2 font-medium">
                   {monthYear}
                 </div>
                 <div className="flex gap-1">
@@ -74,17 +75,15 @@ export function ExpirationSelector({
                     const day = new Date(exp.date).getDate();
                     const isSelected = selectedExpiration === exp.date;
                     return (
-                      <button
+                      <Button
                         key={exp.date}
+                        variant={isSelected ? "default" : "outline"}
+                        size="sm"
                         onClick={() => onExpirationChange(exp.date)}
-                        className={`px-3 py-2 text-sm rounded transition-all font-bold ${
-                          isSelected
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-card text-card-foreground hover:bg-muted border border-border'
-                        }`}
+                        className="w-9 h-9 p-0"
                       >
                         {day}
-                      </button>
+                      </Button>
                     );
                   })}
                 </div>
