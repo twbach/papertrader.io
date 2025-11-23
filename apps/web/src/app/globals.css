@@ -1,5 +1,100 @@
-@import "tailwindcss";
-@import '../styles/retro-ui-theme.css';
+@import 'tailwindcss';
+
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: 338.2 0% 100%;
+  --foreground: 233.3 27.3% 12.9%;
+  --card: 338.2 0% 100%;
+  --card-foreground: 233.3 27.3% 12.9%;
+  --popover: 338.2 0% 100%;
+  --popover-foreground: 233.3 27.3% 12.9%;
+  --primary: 229.3 109.3% 66.6%;
+  --primary-foreground: 233.9 84.3% 4.9%;
+  --secondary: 334.3 0% 90.9%;
+  --secondary-foreground: 233.3 27.3% 42.9%;
+  --muted: 334.3 0% 81.9%;
+  --muted-foreground: 233.3 27.3% 42.9%;
+  --accent: 334.3 0% 81.9%;
+  --accent-foreground: 233.3 27.3% 32.9%;
+  --destructive: 357.2 125.9% 71%;
+  --border: 233.3 27.3% 42.9%;
+  --input: 233.3 27.3% 42.9%;
+  --ring: 229.3 109.3% 66.6%;
+  --chart-1: 229.3 109.3% 66.6%;
+  --chart-2: 334.3 0% 90.9%;
+  --chart-3: 334.3 0% 81.9%;
+  --chart-4: 334.3 0% 91.9%;
+  --chart-5: 229.3 109.3% 76.6%;
+  --sidebar: 0 0% 97%;
+  --sidebar-foreground: 233 27% 50%;
+  --sidebar-primary: 229 100% 64%;
+  --sidebar-primary-foreground: 233.9 84.3% 4.9%;
+  --sidebar-accent: 0 0% 79%;
+  --sidebar-accent-foreground: 233.3 27.3% 32.9%;
+  --sidebar-border: 233 27% 40%;
+  --sidebar-ring: 229 100% 64%;
+  --destructive-foreground: 233.3 27.3% 12.9%;
+  --radius: 0rem;
+  --font-serif: Georgia, Cambria, "Times New Roman", Times, serif;
+  --spacing: 0.25rem;
+  --shadow-2xs: 0px 4px 8px -1px hsl(0 0% 0% / 0.05);
+  --shadow-xs: 0px 4px 8px -1px hsl(0 0% 0% / 0.05);
+  --shadow-sm: 0px 4px 8px -1px hsl(0 0% 0% / 0.10), 0px 1px 2px -2px hsl(0 0% 0% / 0.10);
+  --shadow: 0px 4px 8px -1px hsl(0 0% 0% / 0.10), 0px 1px 2px -2px hsl(0 0% 0% / 0.10);
+  --shadow-md: 0px 4px 8px -1px hsl(0 0% 0% / 0.10), 0px 2px 4px -2px hsl(0 0% 0% / 0.10);
+  --shadow-lg: 0px 4px 8px -1px hsl(0 0% 0% / 0.10), 0px 4px 6px -2px hsl(0 0% 0% / 0.10);
+  --shadow-xl: 0px 4px 8px -1px hsl(0 0% 0% / 0.10), 0px 8px 10px -2px hsl(0 0% 0% / 0.10);
+  --shadow-2xl: 0px 4px 8px -1px hsl(0 0% 0% / 0.25);
+  --tracking-normal: 0em;
+}
+
+.dark {
+  --background: 338.2 10% 10%;
+  --foreground: 233.3 37.3% 87.1%;
+  --card: 338.2 10% 10%;
+  --card-foreground: 233.3 37.3% 87.1%;
+  --popover: 338.2 10% 10%;
+  --popover-foreground: 233.3 37.3% 87.1%;
+  --primary: 229.3 100% 33.4%;
+  --primary-foreground: 233.9 94.3% 90%;
+  --secondary: 334.3 10% 10%;
+  --secondary-foreground: 233.3 37.3% 57.1%;
+  --muted: 334.3 10% 18.1%;
+  --muted-foreground: 233.3 37.3% 57.1%;
+  --accent: 334.3 10% 18.1%;
+  --accent-foreground: 233.3 37.3% 67.1%;
+  --destructive: 357.2 100% 29%;
+  --border: 233.3 37.3% 57.1%;
+  --input: 233.3 37.3% 57.1%;
+  --ring: 229.3 100% 33.4%;
+  --chart-1: 229.3 100% 36.6%;
+  --chart-2: 334.3 10% 60%;
+  --chart-3: 334.3 10% 51.9%;
+  --chart-4: 334.3 10% 60%;
+  --chart-5: 229.3 100% 46.6%;
+  --sidebar: 338 10% 2%;
+  --sidebar-foreground: 233 37% 62%;
+  --sidebar-primary: 229 100% 50%;
+  --sidebar-primary-foreground: 233.9 94.3% 90%;
+  --sidebar-accent: 334 10% 10%;
+  --sidebar-accent-foreground: 233.3 37.3% 67.1%;
+  --sidebar-border: 233 37% 49%;
+  --sidebar-ring: 229 100% 25%;
+  --destructive-foreground: 233.3 37.3% 87.1%;
+  --radius: 0rem;
+  --font-serif: Georgia, Cambria, "Times New Roman", Times, serif;
+  --spacing: 0.25rem;
+  --shadow-2xs: 0px 4px 8px -1px hsl(0 0% 0% / 0.05);
+  --shadow-xs: 0px 4px 8px -1px hsl(0 0% 0% / 0.05);
+  --shadow-sm: 0px 4px 8px -1px hsl(0 0% 0% / 0.10), 0px 1px 2px -2px hsl(0 0% 0% / 0.10);
+  --shadow: 0px 4px 8px -1px hsl(0 0% 0% / 0.10), 0px 1px 2px -2px hsl(0 0% 0% / 0.10);
+  --shadow-md: 0px 4px 8px -1px hsl(0 0% 0% / 0.10), 0px 2px 4px -2px hsl(0 0% 0% / 0.10);
+  --shadow-lg: 0px 4px 8px -1px hsl(0 0% 0% / 0.10), 0px 4px 6px -2px hsl(0 0% 0% / 0.10);
+  --shadow-xl: 0px 4px 8px -1px hsl(0 0% 0% / 0.10), 0px 8px 10px -2px hsl(0 0% 0% / 0.10);
+  --shadow-2xl: 0px 4px 8px -1px hsl(0 0% 0% / 0.25);
+}
 
 @theme inline {
   --color-background: oklch(from hsl(var(--background)) l c h);
@@ -21,20 +116,41 @@
   --color-border: oklch(from hsl(var(--border)) l c h);
   --color-input: oklch(from hsl(var(--input)) l c h);
   --color-ring: oklch(from hsl(var(--ring)) l c h);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
 
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
+  --font-serif: Georgia, Cambria, "Times New Roman", Times, serif;
+  --radius: 0rem;
+  --tracking-normal: 0em;
+  --tracking-tighter: calc(var(--tracking-normal) - 0.05em);
+  --tracking-tight: calc(var(--tracking-normal) - 0.025em);
+  --tracking-wide: calc(var(--tracking-normal) + 0.025em);
+  --tracking-wider: calc(var(--tracking-normal) + 0.05em);
+  --tracking-widest: calc(var(--tracking-normal) + 0.1em);
+
+  --radius-sm: 0rem;
+  --radius-md: 0rem;
+  --radius-lg: 0rem;
+  --radius-xl: 0rem;
 }
 
 @layer utilities {
   .font-head {
-    font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+    font-family:
+      var(--font-sans),
+      system-ui,
+      -apple-system,
+      sans-serif;
   }
 
   .font-body {
-    font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+    font-family:
+      var(--font-sans),
+      system-ui,
+      -apple-system,
+      sans-serif;
   }
 }
 
@@ -59,7 +175,18 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    letter-spacing: var(--tracking-normal);
+  }
 }

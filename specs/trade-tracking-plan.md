@@ -1,17 +1,20 @@
 # Trade Storage & Exposure Plan
 
 ## 1. Objective
+
 - Persist option trades initiated through the Papertrader UI so they can later power portfolio analytics, P&L, and compliance reporting.
 - Provide a backend API that surfaces stored trades in a normalized format, enabling future UI work (portfolio/positions view).
 - Ensure the solution is full-stack: inputs come from the current frontend order workflows, storage occurs server-side, and a read API exposes data for downstream consumers.
 
 ## 2. Current State & Gaps
+
 - Orders currently exist only in-memory within the UI; once a dialog closes, trade details are lost.
 - No database tables or Prisma models describe trades, legs, fills, or executions.
 - The trpc router lacks mutations for creating trades and queries for retrieving them.
 - The backend (FastAPI service) currently focuses on greeks; no trade persistence.
 
 ## 3. Requirements & Constraints
+
 1. **Data Model**
    - Capture high-level trade metadata (id, user, strategy name, symbol, createdAt, status).
    - Store legs with option details (type, strike, expiration, quantity, price).
@@ -32,8 +35,10 @@
    - Cover Prisma model logic and API endpoints with unit/integration tests (tRPC + database).
 
 ## 4. Implementation Plan
+
 1. **Schema Design**
    - Update `packages/database/schema.prisma` with models:
+
      ```prisma
      model Trade {
        id           String   @id @default(cuid())
@@ -59,7 +64,9 @@
      enum TradeStatus { PENDING FILLED CANCELLED }
      enum OptionType { CALL PUT }
      ```
+
    - Run `pnpm db:generate` after migrations.
+
 2. **Backend Services**
    - If FastAPI will also store trades (for cross-service use), add matching Pydantic models and endpoints under `/trades`.
    - Decide ownership: if Next.js app handles persistence via Prisma, FastAPI can remain stateless; otherwise ensure consistent schema across both.
@@ -101,11 +108,13 @@
    - Document API contract in `specs/order-placement-feature.md` or new spec file.
 
 ## 5. Future Enhancements (Out of Scope)
+
 - Trade updates (fills, partial executions, commissions).
 - Portfolio aggregation logic (net delta, theta, etc.).
 - UI components for listing trades—will use the list API once portfolio section is built.
 
 ## 6. Acceptance Criteria
+
 1. Prisma schema includes Trade + TradeLeg models with migrations applied.
 2. `createTrade` mutation saves data; `listTrades` returns user-specific history.
 3. Frontend order flow calls `createTrade` and surfaces errors.
