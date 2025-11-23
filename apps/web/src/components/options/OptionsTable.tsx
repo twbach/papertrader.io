@@ -118,6 +118,8 @@ export function OptionsTable({
   const scrollTopRef = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const atmRowRef = useRef<HTMLDivElement>(null);
+  const hasMovedRef = useRef(false);
+  const MOVEMENT_THRESHOLD = 5; // pixels
 
   const atmStrike = useMemo(() => {
     if (!calls || calls.length === 0) return underlyingPrice;
@@ -147,6 +149,7 @@ export function OptionsTable({
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!containerRef.current) return;
     setIsDragging(true);
+    hasMovedRef.current = false; // Reset movement tracking for new interaction
     startXRef.current = e.pageX - containerRef.current.offsetLeft;
     startYRef.current = e.pageY - containerRef.current.offsetTop;
     scrollLeftRef.current = containerRef.current.scrollLeft;
@@ -155,17 +158,29 @@ export function OptionsTable({
 
   const handleMouseLeave = () => {
     setIsDragging(false);
+    hasMovedRef.current = false;
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
+    // Reset movement tracking after click event has had a chance to fire
+    // The click event fires after mouseup, so we delay the reset
+    setTimeout(() => {
+      hasMovedRef.current = false;
+    }, 0);
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging || !containerRef.current) return;
-    e.preventDefault();
     const x = e.pageX - containerRef.current.offsetLeft;
     const y = e.pageY - containerRef.current.offsetTop;
+    const deltaX = Math.abs(x - startXRef.current);
+    const deltaY = Math.abs(y - startYRef.current);
+    // Track if meaningful movement occurred (exceeds threshold)
+    if (deltaX > MOVEMENT_THRESHOLD || deltaY > MOVEMENT_THRESHOLD) {
+      hasMovedRef.current = true;
+    }
+    e.preventDefault();
     const walkX = (x - startXRef.current) * 1.5; // Scroll speed multiplier
     const walkY = (y - startYRef.current) * 1.5;
     containerRef.current.scrollLeft = scrollLeftRef.current - walkX;
@@ -178,7 +193,7 @@ export function OptionsTable({
     price: number,
     strike: number,
   ) => {
-    if (!onAddLeg || isDragging) return; // Prevent click when dragging
+    if (!onAddLeg || hasMovedRef.current) return; // Prevent click if meaningful movement occurred
     setSelectedOption({ type, priceType, price, strike });
     setDialogOpen(true);
   };
@@ -296,8 +311,8 @@ export function OptionsTable({
                             : ''
                             } ${hasCallLeg ? 'font-semibold' : ''}`}
                           onClick={() => {
-                            // Prevent click if we were dragging
-                            if (isDragging) return;
+                            // Prevent click if meaningful movement occurred during drag
+                            if (hasMovedRef.current) return;
                             if (isPriceColumn && onAddLeg && price > 0) {
                               handlePriceClick('call', priceType, price, row.strike);
                             }
@@ -343,8 +358,8 @@ export function OptionsTable({
                             : ''
                             } ${hasPutLeg ? 'font-semibold' : ''}`}
                           onClick={() => {
-                            // Prevent click if we were dragging
-                            if (isDragging) return;
+                            // Prevent click if meaningful movement occurred during drag
+                            if (hasMovedRef.current) return;
                             if (isPriceColumn && onAddLeg && price > 0) {
                               handlePriceClick('put', priceType, price, row.strike);
                             }

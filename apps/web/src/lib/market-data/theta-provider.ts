@@ -213,10 +213,21 @@ function parseCsvOrThrow(csv: string, endpoint: MarketDataEndpoint): Record<stri
 
 function filterExpirations(rows: Record<string, string>[]): string[] {
   const now = Date.now();
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+  const todayStart = today.getTime();
   const expirations = rows
     .map((row) => row.expiration)
     .filter((value): value is string => Boolean(value))
-    .filter((value) => Date.parse(value) > now)
+    .filter((value) => {
+      const timestamp = Date.parse(value);
+      if (Number.isNaN(timestamp)) {
+        return false;
+      }
+      // Keep expirations that are today or in the future
+      // Compare against start of today to include today's expirations
+      return timestamp >= todayStart;
+    })
     .sort();
   return expirations.slice(0, MAX_EXPIRATIONS);
 }

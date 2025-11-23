@@ -80,7 +80,7 @@ MASSIVE_API_KEY=sk_your_key pnpm verify:massive SPY
 The script hits the Massive REST API (expirations → option chain) and EODHD (underlying snapshot) and prints actionable errors if any step fails.
 
 Set `THETA_DATA_VERBOSE_LOGS=true` to emit debug-level success logs when you need extra telemetry.
-For Massive, supply `MASSIVE_API_KEY` and optionally override `MASSIVE_API_URL` (defaults to `https://api.massive.com/v1`).
+For Massive, supply `MASSIVE_API_KEY` and optionally override `MASSIVE_API_URL` (defaults to `https://api.massive.com/v2`).
 For EODHD, supply `EODHD_API_KEY` (get yours at https://eodhd.com/register).
 
 Invalid values cause the server to throw on startup with the list of valid options so misconfigurations are caught early.

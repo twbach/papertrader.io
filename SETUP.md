@@ -38,7 +38,7 @@ Provider-specific env vars:
 ```text
 MARKET_DATA_PROVIDER=massive|theta (default: massive)
 MASSIVE_API_KEY=<your Massive REST key>
-MASSIVE_API_URL=https://api.massive.com/v1 (override as needed)
+MASSIVE_API_URL=https://api.massive.com/v2 (override as needed)
 THETA_API_URL=http://0.0.0.0:25503/v3 (used when provider=theta)
 EODHD_API_KEY=<your EODHD API key> (required for stock quotes, get yours at https://eodhd.com/register)
 ```

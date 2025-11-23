@@ -16,7 +16,7 @@ import { MarketDataProviderError } from './errors';
 import { fetchEodhdUnderlyingQuote, EodhdError } from './eodhd-client';
 
 const MASSIVE_PROVIDER_ID: MarketDataProviderId = 'massive';
-const MASSIVE_BASE_URL = process.env.MASSIVE_API_URL || 'https://api.massive.com';
+const MASSIVE_BASE_URL = process.env.MASSIVE_API_URL || 'https://api.massive.com/v2';
 const SHOULD_LOG_VERBOSE = process.env.THETA_DATA_VERBOSE_LOGS === 'true';
 const MAX_EXPIRATIONS = 20;
 
@@ -171,10 +171,9 @@ function buildExpirationList(results: ListOptionsContracts200ResponseResultsInne
     }
     // Keep expirations that are today or in the future
     // Compare against start of today to include today's expirations
-    if (timestamp < todayStart) {
-      return;
+    if (timestamp >= todayStart) {
+      expirations.add(contract.expiration_date);
     }
-    expirations.add(contract.expiration_date);
   });
   return Array.from(expirations).sort().slice(0, MAX_EXPIRATIONS);
 }
