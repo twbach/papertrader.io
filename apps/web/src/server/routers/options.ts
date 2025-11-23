@@ -99,6 +99,8 @@ function mapMarketDataErrorToTrpcCode(error: MarketDataError): TRPCError['code']
       return 'UNAUTHORIZED';
     case 'parse':
       return 'INTERNAL_SERVER_ERROR';
+    case 'validation':
+      return 'BAD_REQUEST';
     case 'http': {
       // Check HTTP status code to distinguish client errors (4xx) from server errors (5xx)
       const status = error.metadata?.status as number | undefined;

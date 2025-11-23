@@ -13,7 +13,7 @@ import {
 import type { MarketDataEndpoint, MarketDataProvider, MarketDataProviderId } from './provider';
 import type { OptionChainResult, OptionQuote, UnderlyingQuote } from './types';
 import { MarketDataProviderError } from './errors';
-import { fetchEodhdUnderlyingQuote, EodhdError } from './eodhd-client';
+
 
 const MASSIVE_PROVIDER_ID: MarketDataProviderId = 'massive';
 const MASSIVE_BASE_URL = process.env.MASSIVE_API_URL || 'https://api.massive.com/v2';
@@ -137,22 +137,15 @@ async function getOptionChain(symbol: string, expiration: string): Promise<Optio
 }
 
 async function getUnderlyingQuote(symbol: string): Promise<UnderlyingQuote> {
-  const requestId = randomUUID();
-  const start = Date.now();
-  try {
-    const result = await fetchEodhdUnderlyingQuote(symbol);
-    if (SHOULD_LOG_VERBOSE) {
-      logMassiveSuccess({
-        endpoint: 'underlying-quote',
-        symbol,
-        durationMs: Date.now() - start,
-        requestId,
-      });
-    }
-    return result;
-  } catch (error) {
-    throw mapSdkError({ endpoint: 'underlying-quote', symbol, requestId, start }, error);
-  }
+  throw new MarketDataProviderError({
+    provider: MASSIVE_PROVIDER_ID,
+    endpoint: 'underlying-quote',
+    symbol,
+    errorType: 'validation',
+    requestId: randomUUID(),
+    durationMs: 0,
+    message: 'Massive provider does not support underlying quotes directly. Use the Strategy provider.',
+  });
 }
 
 function buildExpirationList(results: ListOptionsContracts200ResponseResultsInner[]): string[] {
@@ -238,19 +231,7 @@ function mapSdkError(context: MassiveErrorContext, error: unknown): never {
   if (error instanceof MarketDataProviderError) {
     throw error;
   }
-  if (error instanceof EodhdError) {
-    throw new MarketDataProviderError({
-      provider: MASSIVE_PROVIDER_ID,
-      endpoint: context.endpoint,
-      symbol: context.symbol,
-      expiration: context.expiration,
-      errorType: error.errorType,
-      requestId: context.requestId,
-      durationMs: Date.now() - context.start,
-      message: error.message,
-      cause: error,
-    });
-  }
+
   if (error instanceof MissingMassiveApiKeyError) {
     throw new MarketDataProviderError({
       provider: MASSIVE_PROVIDER_ID,
@@ -314,7 +295,7 @@ function getMassiveClient(): DefaultApi {
   return cachedClient;
 }
 
-class MissingMassiveApiKeyError extends Error {}
+class MissingMassiveApiKeyError extends Error { }
 
 function requireMassiveApiKey(): string {
   const apiKey = process.env.MASSIVE_API_KEY;

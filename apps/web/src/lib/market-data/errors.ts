@@ -1,7 +1,7 @@
 import type { MarketDataMode } from '@/lib/market-data-config';
 import type { MarketDataEndpoint, MarketDataProviderId } from './provider';
 
-export type MarketDataErrorType = 'network' | 'http' | 'parse' | 'auth' | 'rate-limit';
+export type MarketDataErrorType = 'network' | 'http' | 'parse' | 'auth' | 'rate-limit' | 'validation';
 
 export interface MarketDataProviderErrorArgs {
   readonly provider: MarketDataProviderId;

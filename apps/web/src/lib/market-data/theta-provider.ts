@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { MarketDataEndpoint, MarketDataProvider, MarketDataProviderId } from './provider';
 import type { OptionChainResult, OptionQuote, UnderlyingQuote } from './types';
 import { MarketDataProviderError, type MarketDataErrorType } from './errors';
-import { fetchEodhdUnderlyingQuote, EodhdError } from './eodhd-client';
+
 
 const THETA_PROVIDER_ID: MarketDataProviderId = 'theta';
 const THETA_BASE_URL = process.env.THETA_API_URL || 'http://0.0.0.0:25503/v3';
@@ -63,9 +63,14 @@ async function getOptionChain(symbol: string, expiration: string): Promise<Optio
 }
 
 async function getUnderlyingQuote(symbol: string): Promise<UnderlyingQuote> {
-  const context: ThetaRequestContext = { endpoint: 'underlying-quote', symbol };
-  return executeThetaRequest(context, async () => {
-    return fetchEodhdUnderlyingQuote(symbol);
+  throw new MarketDataProviderError({
+    provider: THETA_PROVIDER_ID,
+    endpoint: 'underlying-quote',
+    symbol,
+    errorType: 'validation',
+    requestId: randomUUID(),
+    durationMs: 0,
+    message: 'Theta provider does not support underlying quotes directly. Use the Strategy provider.',
   });
 }
 
@@ -96,19 +101,7 @@ async function executeThetaRequest<T>(
         metadata: error instanceof ThetaHttpError ? { status: error.status, statusText: error.statusText } : undefined,
       });
     }
-    if (error instanceof EodhdError) {
-      throw new MarketDataProviderError({
-        provider: THETA_PROVIDER_ID,
-        endpoint: context.endpoint,
-        symbol: context.symbol,
-        expiration: context.expiration,
-        errorType: error.errorType,
-        requestId,
-        durationMs: Math.round(getTimestampMs() - start),
-        message: error.message,
-        cause: error,
-      });
-    }
+
     throw error;
   }
 }
