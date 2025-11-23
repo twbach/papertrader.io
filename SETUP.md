@@ -4,7 +4,8 @@
 
 - **Node.js** 18+ and **pnpm** 8+
 - **Docker** and **Docker Compose**
-- **ThetaData Terminal** (running on host machine)
+- **Massive** account + REST API key (for the default provider)
+- **ThetaData Terminal** (optional, used when `MARKET_DATA_PROVIDER=theta`)
 
 ---
 
@@ -23,7 +24,39 @@ cp .env.example .env
 cp .env.example apps/web/.env.local
 ```
 
-Edit `.env` and add your ThetaData credentials if needed.
+Edit `.env` and add your market data credentials.
+Set `DATA_MODE` to control data sourcing:
+
+- `auto` _(default)_ – best-effort live call with fallback to mocks.
+- `live` – live calls only, errors bubble to the UI.
+- `mock` – always serve mock data (great for offline dev + CI).
+
+Optional: set `THETA_DATA_VERBOSE_LOGS=true` to emit debug logs for successful provider calls.
+
+Provider-specific env vars:
+
+```text
+MARKET_DATA_PROVIDER=massive|theta (default: massive)
+MASSIVE_API_KEY=<your Massive REST key>
+MASSIVE_API_URL=https://api.massive.com/v2 (override as needed)
+THETA_API_URL=http://0.0.0.0:25503/v3 (used when provider=theta)
+EODHD_API_KEY=<your EODHD API key> (required for stock quotes, get yours at https://eodhd.com/register)
+```
+
+**Note:** Option data is fetched from the selected `MARKET_DATA_PROVIDER` (Massive or Theta), while stock quotes are always fetched from EODHD (15-minute delayed).
+
+Invalid values make the server crash on startup so you notice misconfigurations immediately.
+
+### Verify Massive Connectivity
+
+Run the helper script before debugging the UI to make sure your Massive credentials work:
+
+```bash
+cd apps/web
+MASSIVE_API_KEY=sk_your_key pnpm verify:massive SPY
+```
+
+It fetches expirations and option chain from your configured provider, and the underlying stock quote from EODHD, printing detailed errors if any step fails (auth, symbols, etc.).
 
 ### 3. Start Infrastructure (PostgreSQL + Redis + Greeks Service)
 
@@ -32,6 +65,7 @@ docker-compose up -d
 ```
 
 Verify services are running:
+
 ```bash
 docker-compose ps
 ```
@@ -39,12 +73,14 @@ docker-compose ps
 ### 4. Set Up Database
 
 Push Prisma schema to PostgreSQL:
+
 ```bash
 cd packages/database
 pnpm db:push
 ```
 
 Or run migrations:
+
 ```bash
 pnpm db:migrate
 ```
@@ -62,14 +98,14 @@ App will be available at: http://localhost:3000
 
 ## Service URLs
 
-| Service | URL | Description |
-|---------|-----|-------------|
-| **Next.js App** | http://localhost:3000 | Main web application |
-| **tRPC API** | http://localhost:3000/api/trpc | API endpoint |
-| **Greeks Service** | http://localhost:8000 | FastAPI Greeks calculator |
-| **Postgres** | localhost:5432 | Database |
-| **Redis** | localhost:6379 | Cache/Leaderboards |
-| **Theta Terminal** | http://localhost:25510 | Market data (run on host) |
+| Service            | URL                            | Description                |
+| ------------------ | ------------------------------ | -------------------------- |
+| **Next.js App**    | http://localhost:3000          | Main web application       |
+| **tRPC API**       | http://localhost:3000/api/trpc | API endpoint               |
+| **Greeks Service** | http://localhost:8000          | FastAPI Greeks calculator  |
+| **Postgres**       | localhost:5432                 | Database                   |
+| **Redis**          | localhost:6379                 | Cache/Leaderboards         |
+| **Theta Terminal** | http://localhost:25510         | Optional fallback provider |
 
 ---
 
@@ -167,6 +203,7 @@ papertrader.io/
 ### Port Already in Use
 
 If ports are occupied:
+
 ```bash
 # Check what's using ports
 lsof -i :3000
@@ -181,6 +218,7 @@ kill -9 <PID>
 ### Prisma Client Out of Sync
 
 If you see "Prisma Client is out of sync" errors:
+
 ```bash
 cd packages/database
 pnpm db:generate
@@ -201,9 +239,16 @@ docker-compose up --build -d
 Make sure Theta Terminal is running on your host machine and accessible at `http://localhost:25510`.
 
 Test connection:
+
 ```bash
 curl http://localhost:25510/v2/system/status
 ```
+
+### Massive API Errors
+
+- Ensure `MASSIVE_API_KEY` is set (Massive returns 401/403 otherwise)
+- Override `MASSIVE_API_URL` if you are targeting a non-default cluster
+- Check logs emitted with `source: "market-data"` for status codes, request IDs, and fallback diagnostics
 
 ---
 
