@@ -2,7 +2,7 @@ import type { OptionChainResult, UnderlyingQuote } from './types';
 
 export type MarketDataEndpoint = 'expirations' | 'option-chain' | 'underlying-quote';
 
-export type MarketDataProviderId = 'theta' | 'massive';
+export type MarketDataProviderId = 'theta' | 'massive' | 'eodhd' | 'strategy';
 
 export interface MarketDataProvider {
   readonly id: MarketDataProviderId;
