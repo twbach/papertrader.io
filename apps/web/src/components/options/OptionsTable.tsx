@@ -112,10 +112,10 @@ export function OptionsTable({
 
   // Drag to scroll state
   const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [startY, setStartY] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
-  const [scrollTop, setScrollTop] = useState(0);
+  const startXRef = useRef(0);
+  const startYRef = useRef(0);
+  const scrollLeftRef = useRef(0);
+  const scrollTopRef = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const atmRowRef = useRef<HTMLDivElement>(null);
 
@@ -147,10 +147,10 @@ export function OptionsTable({
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!containerRef.current) return;
     setIsDragging(true);
-    setStartX(e.pageX - containerRef.current.offsetLeft);
-    setStartY(e.pageY - containerRef.current.offsetTop);
-    setScrollLeft(containerRef.current.scrollLeft);
-    setScrollTop(containerRef.current.scrollTop);
+    startXRef.current = e.pageX - containerRef.current.offsetLeft;
+    startYRef.current = e.pageY - containerRef.current.offsetTop;
+    scrollLeftRef.current = containerRef.current.scrollLeft;
+    scrollTopRef.current = containerRef.current.scrollTop;
   };
 
   const handleMouseLeave = () => {
@@ -166,10 +166,10 @@ export function OptionsTable({
     e.preventDefault();
     const x = e.pageX - containerRef.current.offsetLeft;
     const y = e.pageY - containerRef.current.offsetTop;
-    const walkX = (x - startX) * 1.5; // Scroll speed multiplier
-    const walkY = (y - startY) * 1.5;
-    containerRef.current.scrollLeft = scrollLeft - walkX;
-    containerRef.current.scrollTop = scrollTop - walkY;
+    const walkX = (x - startXRef.current) * 1.5; // Scroll speed multiplier
+    const walkY = (y - startYRef.current) * 1.5;
+    containerRef.current.scrollLeft = scrollLeftRef.current - walkX;
+    containerRef.current.scrollTop = scrollTopRef.current - walkY;
   };
 
   const handlePriceClick = (
